@@ -1,17 +1,17 @@
 /**
- * Creates a Principal
+ * Creates a Dean
  *
  * @author Jason Gao
  * @version v1.00 Dec 18, 2019
  */
-public class Principal extends Staff implements IncreaseSalary
+public class Dean extends Staff
 {
     /**
      * A String of the school name;
      */
     private String schoolManagedName;
     /**
-     * Creates a new Principal
+     * Creates a new Dean
      *
      * @param age int age of the Principal
      * @param name String name of the Principal
@@ -21,7 +21,7 @@ public class Principal extends Staff implements IncreaseSalary
      * @throws IllegalArgumentException If schoolManagedName is empty
      * @throws NullPointerException If schoolManagedName is null
      */
-    public Principal(int age, String name, int salary, int employeeID, String schoolManagedName)
+    public Dean(int age, String name, int salary, int employeeID, String schoolManagedName)
     {
         super(age, name, salary, employeeID);
 
@@ -35,27 +35,27 @@ public class Principal extends Staff implements IncreaseSalary
     }
 
     /**
-     * Increase the salary of the Principal
-     */
-    public void increaseSalary(int salaryIncrease) {
-        setSalary(getSalary() + salaryIncrease);
-    }
-
-    /**
      * Gets the name of the school
      *
-     * @return A String of the school name the principal is in charge of
+     * @return A String of the school name the dean is in charge of
      */
     public String getSchoolName() {
         return schoolManagedName;
     }
 
     /**
-     * Prints String representing Principal information
+     * Prints String representing Dean information
      *
-     * @return String of Principal information
+     * @return String of Dean information
      */
     public String toString() {
         return (getName() + " is " + getAge() + " years old and runs " + getSchoolName() + " while being paid $" + getSalary() + "/month");
+    }
+
+    /**
+     * Sets Professor salary
+     */
+    public void setSalary(Professor professor, int salary) {
+        professor.setSalary(salary);
     }
 }
