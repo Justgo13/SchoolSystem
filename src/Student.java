@@ -1,4 +1,5 @@
-import java.util.Dictionary;
+import java.util.ArrayList;
+import java.util.HashMap;
 /**
  * Creates a Student
  *
@@ -10,7 +11,22 @@ public class Student extends Person
     /**
      * A Dictionary storing all of the Student courses code and grade
      */
-    Dictionary<String,String> courses;
+    HashMap<String, String> courses;
+
+    /**
+     * String student major
+     */
+    private String major;
+
+    /**
+     * int Year standing
+     */
+    private int yearStanding;
+
+    /**
+     * double school fees
+     */
+    private int fees;
 
     /**
      * An int of the student's ID
@@ -22,17 +38,22 @@ public class Student extends Person
      * @param age int age of the Student
      * @param name String name of the Student
      * @param studentID An int representing student ID
+     * @param major String major of Student
+     * @param yearStanding int yearStanding of Student
      *
-     * @throws IllegalArguementException If student ID below 0
+     * @throws IllegalArgumentException If student ID below 0
      */
-    public Student(int age, String name, int studentID)
+    public Student(int age, String name, int studentID, String major, int yearStanding)
     {
         super(age, name);
         if (studentID < 0) {
             throw new IllegalArgumentException("Student ID must be a positive integer");
         }
-
+        this.major = major;
+        this.yearStanding = yearStanding;
+        fees = 0;
         this.studentID = studentID;
+        courses = new HashMap<>();
     }
 
     /**
@@ -48,19 +69,69 @@ public class Student extends Person
      * Adds a course for the student
      *
      * @param courseCode A String of the course code
-     * @param grade a String of the grade
      */
-    public void addCourse(String courseCode, String grade) {
-        courses.put(courseCode, grade);
+    public void addCourse(String courseCode) {
+        courses.put(courseCode, "EMPTY");
+        fees += 500;
     }
 
     /**
-     * Updates course grade
-     *
-     * @param courseCode A String of the course code
-     * @param grade a String of the grade
+     * Gets an ArrayList of the course codes
+     * @return ArrayList<String> of all course codes </String>
      */
-    public void updateGrade(String courseCode, String grade) {
+    public ArrayList<String> getCourse() {
+        ArrayList<String> course = new ArrayList<>();
+        for (String code : courses.keySet()) {
+            course.add(code);
+        }
+        return course;
+    }
+
+    /**
+     * Removes a course for student
+     */
+    public void removeCourse(String courseCode) {
+        courses.remove(courseCode);
+        fees -= 500;
+    }
+
+    /**
+     * String of student major
+     * @return String of student mojor
+     */
+    public String getMajor(){
+        return major;
+    }
+
+    /**
+     * int of yearStanding
+     * @return int of yearStanding
+     */
+    public int getYearStanding(){
+        return yearStanding;
+    }
+
+    /**
+     * Get student fees
+     * @return int representing student fee
+     */
+    public int getFees(){
+        return fees;
+    }
+
+    /**
+     * Gets student ID
+     * @return int Student ID
+     */
+    public int getStudentID() {
+        return studentID;
+    }
+
+    /**
+     * Updates student grade
+     *
+     */
+    public void setGrade(String courseCode, String grade) {
         courses.put(courseCode, grade);
     }
 
@@ -70,6 +141,6 @@ public class Student extends Person
      * @return String of Student information
      */
     public String toString() {
-        return (getName() + " is " + getAge() + " years old ");
+        return (getName() + " is " + getAge() + " years old, is in " + getMajor() + " year standing: " + getYearStanding());
     }
 }
