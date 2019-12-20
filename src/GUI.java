@@ -14,61 +14,62 @@ public class GUI implements ActionListener
     /**
      * Dictionaries for storing Teacher, Principal, and Students
      */
-    private HashMap<Integer,Teacher> teachers;
-    private HashMap<Integer,Principal> principals;
-    private HashMap<Integer,Student> students;
+    private HashMap<Integer,Professor> professorHashMap;
+    private HashMap<Integer, Dean> deanHashMap;
+    private HashMap<Integer,Student> studentHashMap;
 
     /**
      * JButton for creating new staff members and students
      */
-    JButton newTeacher;
-    JButton newPrincipal;
-    JButton newStudent;
+    private JButton newTeacher;
+    private JButton newPrincipal;
+    private JButton newStudent;
 
     /**
      * JButton for returning list of staff members and students
      */
-    JButton getStudent;
-    JButton getTeacher;
-    JButton getPrincipal;
+    private JButton getStudent;
+    private JButton getProfessor;
+    private JButton getDean;
 
     /**
-     * JDialog boxes for entering new staff or student information
+     * JButton for Student
      */
-    JDialog teacherBox;
-    JDialog principalBox;
-    JDialog studentBox;
-    JDialog teacherList;
-    JDialog principalList;
-    JDialog studentList;
+    private JButton registerCourse;
+    private JButton deregisterCourse;
+    private JButton courseFee;
+    private JButton fees;
 
     /**
      * JTextField for inputting information
      */
-    JTextField name;
-    JTextField courseTaught;
-    JTextField studentID;
-    JTextField schoolName;
+    private JTextField name;
+    private JTextField courseTaught;
+    private JTextField studentID;
+    private JTextField schoolName;
+    private JTextField employeeID;
+    private JTextField course;
+    private JTextField major;
 
     /**
      * JComboBox for inputting information
      */
-    JComboBox<Integer> age;
-    JComboBox<Integer> salary;
-    JComboBox<Integer> employeeID;
+    private JComboBox<Integer> age;
+    private JComboBox<Integer> studentAge;
+    private JComboBox<Integer> salary;
+    private JComboBox<Integer> yearStanding;
 
     /**
      * JTextArea for outputing information
      */
-    JTextArea teacherInfo;
-    JTextArea principalInfo;
-    JTextArea studentInfo;
+    private JTextArea teacherInfo;
+    private JTextArea principalInfo;
+    private JTextArea studentInfo;
 
     /**
      * Red line border to indicate missing fields
      */
-    Border redLineBorder;
-    Border blackLineBorder;
+    private Border redLineBorder;
     /**
      * Constructor the skeleton for the GUI
      */
@@ -80,7 +81,6 @@ public class GUI implements ActionListener
         container.setLayout(new BoxLayout(container, BoxLayout.X_AXIS));
 
         redLineBorder = BorderFactory.createLineBorder(Color.RED);
-        blackLineBorder = BorderFactory.createLineBorder(Color.BLACK);
 
         TitledBorder staff, teacher, principal, student;
 
@@ -90,59 +90,63 @@ public class GUI implements ActionListener
         student = BorderFactory.createTitledBorder("Student");
 
         // Initialize all dictionaries
-        teachers = new HashMap<Integer, Teacher>();
-        principals = new HashMap<Integer,Principal>();
-        students = new HashMap<Integer,Student>();
+        professorHashMap = new HashMap<>();
+        deanHashMap = new HashMap<>();
+        studentHashMap = new HashMap<>();
 
         JPanel teacherPanel = new JPanel(new GridLayout(2,1));
         teacherPanel.setBorder(teacher);
         newTeacher = new JButton("NEW TEACHER");
-        getTeacher = new JButton("GET TEACHER INFO");
+        getProfessor = new JButton("GET TEACHER INFO");
         newTeacher.addActionListener(this);
-        getTeacher.addActionListener(this);
+        getProfessor.addActionListener(this);
         teacherPanel.add(newTeacher);
-        teacherPanel.add(getTeacher);
+        teacherPanel.add(getProfessor);
 
         JPanel principalPanel = new JPanel(new GridLayout(2,1));
         principalPanel.setBorder(principal);
         newPrincipal = new JButton("NEW PRINCIPAL");
-        getPrincipal = new JButton("GET PRINCIPAL INFO");
+        getDean = new JButton("GET PRINCIPAL INFO");
         newPrincipal.addActionListener(this);
-        getPrincipal.addActionListener(this);
+        getDean.addActionListener(this);
         principalPanel.add(newPrincipal);
-        principalPanel.add(getPrincipal);
+        principalPanel.add(getDean);
 
         JPanel staffPanel = new JPanel(new GridLayout(1,2));
         staffPanel.setBorder(staff);
         staffPanel.add(teacherPanel);
         staffPanel.add(principalPanel);
 
-        JPanel studentPanel = new JPanel(new GridLayout(2,1));
+        JPanel studentPanel = new JPanel(new GridLayout(3,3));
         studentPanel.setBorder(student);
         newStudent = new JButton("NEW STUDENT");
         getStudent = new JButton("GET STUDENT INFO");
+        registerCourse = new JButton("REGISTER COURSE");
+        deregisterCourse = new JButton("UNREGISTER COURSE");
+        courseFee = new JButton("GET COURSES");
+        fees = new JButton("GET FEES");
         newStudent.addActionListener(this);
         getStudent.addActionListener(this);
+        registerCourse.addActionListener(this);
+        deregisterCourse.addActionListener(this);
+        courseFee.addActionListener(this);
+        fees.addActionListener(this);
         studentPanel.add(newStudent);
         studentPanel.add(getStudent);
-
-        // Creates JDialog boxes
-        teacherBox = new JDialog();
-        teacherBox.setSize(200,100);
-        principalBox = new JDialog();
-        principalBox.setSize(200,100);
-        studentBox = new JDialog();
-        studentBox.setSize(200,100);
-
-        // JDialog box for outputing staff member / student info
-        teacherList = new JDialog();
-        principalList = new JDialog();
-        studentList = new JDialog();
+        studentPanel.add(registerCourse);
+        studentPanel.add(deregisterCourse);
+        studentPanel.add(courseFee);
+        studentPanel.add(fees);
 
         // Creates data for JComboBox
-        Integer[] ageData = new Integer[51];
+        Integer[] teacherAgeData = new Integer[51];
         for (Integer i = 0; i < 51; i++){
-            ageData[i] = i + 30;
+            teacherAgeData[i] = i + 30;
+        }
+
+        Integer[] studentAgeData = new Integer[13];
+        for (Integer i = 0; i < 13; i++){
+            studentAgeData[i] = i + 18;
         }
 
         Integer[] salaryData = new Integer[17];
@@ -152,18 +156,23 @@ public class GUI implements ActionListener
             value += 10000;
         }
 
-        Integer[] employeeIDData = new Integer[100];
-        for (Integer i = 0; i < 100; i++){
-            employeeIDData[i] = i;
+        Integer[] yearStandingData = new Integer[4];
+        for (Integer i = 0; i < 4; i++){
+            yearStandingData[i] = i + 1;
         }
+
         // Creates JTextField and JCheckBox in the JDialog box
         name = new JTextField();
-        age = new JComboBox<Integer>(ageData);
-        salary = new JComboBox<Integer>(salaryData);
-        employeeID = new JComboBox<Integer>(employeeIDData);
+        age = new JComboBox<>(teacherAgeData);
+        studentAge = new JComboBox<>(studentAgeData);
+        major = new JTextField();
+        yearStanding = new JComboBox<>(yearStandingData);
+        salary = new JComboBox<>(salaryData);
+        employeeID = new JTextField();
         courseTaught = new JTextField();
         studentID = new JTextField();
         schoolName = new JTextField();
+        course = new JTextField();
 
         // Creates JTextArea for outputing information
         teacherInfo = new JTextArea();
@@ -173,28 +182,6 @@ public class GUI implements ActionListener
         teacherInfo.setEditable(false);
         principalInfo.setEditable(false);
         studentInfo.setEditable(false);
-
-        // Adds JTextField to teacherBox
-        teacherBox.add(name);
-        teacherBox.add(age);
-        teacherBox.add(salary);
-        teacherBox.add(courseTaught);
-
-        // Adds JTextField to principalBox
-        principalBox.add(name);
-        principalBox.add(age);
-        principalBox.add(salary);
-        principalBox.add(schoolName);
-
-        // Adds JTextField to studentBox
-        studentBox.add(name);
-        studentBox.add(age);
-        studentBox.add(studentID);
-
-        // Adds JTextArea to JDialog for outputing info
-        teacherList.add(teacherInfo);
-        principalList.add(principalInfo);
-        studentList.add(studentInfo);
 
         container.add(staffPanel);
         container.add(studentPanel);
@@ -211,9 +198,9 @@ public class GUI implements ActionListener
      */
     public void addToListTeacher(){
         String teacherList = "";
-        for (Map.Entry<Integer, Teacher> entry : teachers.entrySet()) {
+        for (Map.Entry<Integer, Professor> entry : professorHashMap.entrySet()) {
             int k = entry.getKey();
-            Teacher v = entry.getValue();
+            Professor v = entry.getValue();
             teacherList += k + ": " + v.toString() + "\n";
         }
         if (teacherList.isEmpty()){
@@ -228,9 +215,9 @@ public class GUI implements ActionListener
      */
     public void addToListPrincipal() {
         String principalList = "";
-        for (Map.Entry<Integer, Principal> entry : principals.entrySet()) {
+        for (Map.Entry<Integer, Dean> entry : deanHashMap.entrySet()) {
             int k = entry.getKey();
-            Principal v = entry.getValue();
+            Dean v = entry.getValue();
             principalList += k + ": " + v.toString() + "\n";
         }
         if (principalList.isEmpty()){
@@ -245,7 +232,7 @@ public class GUI implements ActionListener
      */
     public void addToListStudent() {
         String studentList = "";
-        for (Map.Entry<Integer, Student> entry : students.entrySet()) {
+        for (Map.Entry<Integer, Student> entry : studentHashMap.entrySet()) {
             int k = entry.getKey();
             Student v = entry.getValue();
             studentList += k + ": " + v.toString() + "\n";
@@ -259,13 +246,36 @@ public class GUI implements ActionListener
     }
 
     /**
+     * Returns Student courses
+     * @param studentID int student ID for identifying student
+     * @return ArrayList<String> of courses Student registered for </String>
+     */
+    public ArrayList<String> getCourses(int studentID) {
+        Student student = studentHashMap.get(studentID);
+        return student.getCourse();
+    }
+
+    /**
+     * Returns Student fees
+     * @param studentID int student ID for identifying student
+     * @return int Student fee
+     */
+    public int getFees(int studentID) {
+        Student student = studentHashMap.get(studentID);
+        return student.getFees();
+    }
+
+    /**
      * Clears all JTextFields
      */
     public void clear(){
         name.setText(null);
         age.setSelectedIndex(0);
+        studentAge.setSelectedIndex(0);
+        major.setText(null);
+        yearStanding.setSelectedIndex(0);
         salary.setSelectedIndex(0);
-        employeeID.setSelectedIndex(0);
+        employeeID.setText(null);
         schoolName.setText(null);
         courseTaught.setText(null);
         studentID.setText(null);
@@ -275,11 +285,14 @@ public class GUI implements ActionListener
      * Adds default border color
      */
     public void defaultBorder(){
-        name.setBorder(blackLineBorder);
-        employeeID.setBorder(blackLineBorder);
-        courseTaught.setBorder(blackLineBorder);
-        schoolName.setBorder(blackLineBorder);
-        studentID.setBorder(blackLineBorder);
+        name.setBorder(null);
+        employeeID.setBorder(null);
+        major.setBorder(null);
+        yearStanding.setBorder(null);
+        course.setBorder(null);
+        courseTaught.setBorder(null);
+        schoolName.setBorder(null);
+        studentID.setBorder(null);
     }
 
     /**
@@ -288,6 +301,15 @@ public class GUI implements ActionListener
     public void addBorder(){
         if (name.getText().equals("")){
             name.setBorder(redLineBorder);
+        }
+        if (course.getText().equals("")) {
+            course.setBorder(redLineBorder);
+        }
+        if (major.getText().equals("")) {
+            major.setBorder(redLineBorder);
+        }
+        if (employeeID.getText().equals("")) {
+            employeeID.setBorder(redLineBorder);
         }
         if (courseTaught.getText().equals("")){
             courseTaught.setBorder(redLineBorder);
@@ -309,19 +331,22 @@ public class GUI implements ActionListener
     public void actionPerformed(ActionEvent e) throws NumberFormatException {
         Object o = e.getSource();
         JButton button = (JButton) o;
+        boolean notFilled = true;
 
         // Object array for storing JTextFields
         Object[] teacherFields = {"Name", name, "Age", age, "Salary", salary, "Employee ID", employeeID, "Course taught", courseTaught};
         Object[] principalFields = {"Name", name, "Age", age, "Salary", salary, "Employee ID", employeeID, "School Name", schoolName};
-        Object[] studentFields = {"Name", name, "Age", age, "Student ID", studentID};
-        if (o == newTeacher){
+        Object[] studentFields = {"Name", name, "Age", studentAge, "Student ID", studentID, "Major", major, "Year Standing", yearStanding};
+        Object[] addCourseField = {"Student ID", studentID, "Course Code", course};
+        Object[] courses = {"Student ID", studentID};
+        Object[] studentFee = {"Student ID", studentID};
+        if (button == newTeacher){
             clear();
-            boolean notFilled1 = true;
-            while (notFilled1) {
+            while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, teacherFields);
-                    teachers.put(Integer.parseInt(employeeID.getSelectedItem().toString()), new Teacher(Integer.parseInt(age.getSelectedItem().toString()), name.getText(), Integer.parseInt(salary.getSelectedItem().toString()), Integer.parseInt(employeeID.getSelectedItem().toString()), courseTaught.getText()));
-                    notFilled1 = false;
+                    professorHashMap.put(Integer.parseInt(employeeID.getText()), new Professor(Integer.parseInt(age.getSelectedItem().toString()), name.getText(), Integer.parseInt(salary.getSelectedItem().toString()), Integer.parseInt(employeeID.getText()), courseTaught.getText()));
+                    notFilled = false;
                 }
                 catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
@@ -329,14 +354,13 @@ public class GUI implements ActionListener
                 }
             }
             defaultBorder();
-        } else if (o == newPrincipal){
+        } else if (button == newPrincipal){
             clear();
-            boolean notFilled2 = true;
-            while (notFilled2) {
+            while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, principalFields);
-                    principals.put(Integer.parseInt(employeeID.getSelectedItem().toString()),new Principal(Integer.parseInt(age.getSelectedItem().toString()), name.getText(), Integer.parseInt(salary.getSelectedItem().toString()), Integer.parseInt(employeeID.getSelectedItem().toString()), schoolName.getText()));
-                    notFilled2 = false;
+                    deanHashMap.put(Integer.parseInt(employeeID.getText()), new Dean(Integer.parseInt(age.getSelectedItem().toString()), name.getText(), Integer.parseInt(salary.getSelectedItem().toString()), Integer.parseInt(employeeID.getText()), schoolName.getText()));
+                    notFilled = false;
                 }
                 catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
@@ -344,14 +368,13 @@ public class GUI implements ActionListener
                 }
             }
             defaultBorder();
-        } else if (o == newStudent){
+        } else if (button == newStudent){
             clear();
-            boolean notFilled3 = true;
-            while (notFilled3) {
+            while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, studentFields);
-                    students.put(Integer.parseInt(studentID.getText()),new Student(Integer.parseInt(age.getSelectedItem().toString()), name.getText(), Integer.parseInt(studentID.getText())));
-                    notFilled3 = false;
+                    studentHashMap.put(Integer.parseInt(studentID.getText()), new Student(Integer.parseInt(studentAge.getSelectedItem().toString()), name.getText(), Integer.parseInt(studentID.getText()), major.getText(), Integer.parseInt(String.valueOf(yearStanding.getSelectedItem()))));
+                    notFilled = false;
                 }
                 catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
@@ -359,15 +382,71 @@ public class GUI implements ActionListener
                 }
             }
             defaultBorder();
-        } else if (o == getTeacher){
+        } else if (button == getProfessor){
             addToListTeacher();
             JOptionPane.showMessageDialog(null, teacherInfo);
-        } else if (o == getPrincipal){
+        } else if (button == getDean){
             addToListPrincipal();
             JOptionPane.showMessageDialog(null, principalInfo);
-        } else if (o == getStudent){
+        } else if (button == getStudent){
             addToListStudent();
             JOptionPane.showMessageDialog(null, studentInfo);
+        } else if (button == registerCourse) {
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, addCourseField);
+                    studentHashMap.get(Integer.parseInt(studentID.getText())).addCourse(course.getText());
+                    notFilled = false;
+                }
+                catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill your course code");
+                    addBorder();
+                }
+            }
+        } else if (button == deregisterCourse) {
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, addCourseField);
+                    studentHashMap.get(Integer.parseInt(studentID.getText())).removeCourse(course.getText());
+                    notFilled = false;
+                }
+                catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill your course code");
+                    addBorder();
+                }
+            }
+        } else if (button == courseFee) {
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, courses);
+                    if (getCourses(Integer.parseInt(studentID.getText())).isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "There is no courses for this student");
+                        return;
+                    }
+                    JOptionPane.showMessageDialog(null, getCourses(Integer.parseInt(studentID.getText())));
+                    notFilled = false;
+                }
+                catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in the student ID");
+                    addBorder();
+                }
+            }
+        }  else if (button == fees) {
+            clear();
+            while(notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, studentFee);
+                    JOptionPane.showMessageDialog(null, getFees(Integer.parseInt(studentID.getText())));
+                    notFilled = false;
+                }
+                catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in the student ID");
+                    addBorder();
+                }
+            }
         }
     }
 }
