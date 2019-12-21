@@ -94,7 +94,7 @@ public class studentGUI extends Login implements ActionListener {
                             notFilled = false;
                         }
                     }
-                } catch (NumberFormatException) {
+                } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
                     studentID.setBorder(redBorder);
                     courseCode.setBorder(redBorder);
@@ -145,7 +145,7 @@ public class studentGUI extends Login implements ActionListener {
                             notFilled = false;
                         }
                     }
-                } catch (NumberFormatException) {
+                } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
                     studentID.setBorder(redBorder);
                 }
