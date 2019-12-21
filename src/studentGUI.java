@@ -79,22 +79,47 @@ public class studentGUI extends Login implements ActionListener {
         JButton button = (JButton) o;
         Object[] registerUnregister = {"Student ID", studentID, "Course code", courseCode};
         Collection collection = studentHashMap.values();
+
+        boolean notFilled = true;
+
         if (button == register) {
-            JOptionPane.showMessageDialog(null, registerUnregister);
-            for (Object studentCourse : collection) {
-                Student student = (Student) studentCourse;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    student.addCourse(courseCode.getText());
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, registerUnregister);
+                    for (Object studentCourse : collection) {
+                        Student student = (Student) studentCourse;
+                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
+                            student.addCourse(courseCode.getText());
+                            notFilled = false;
+                        }
+                    }
+                } catch (NumberFormatException) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    studentID.setBorder(redBorder);
+                    courseCode.setBorder(redBorder);
                 }
             }
+
         } else if (button == unregister) {
-            JOptionPane.showMessageDialog(null, registerUnregister);
-            for (Object studentCourse : collection) {
-                Student student = (Student) studentCourse;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    student.removeCourse(courseCode.getText());
+            clear();
+            while(notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, registerUnregister);
+                    for (Object studentCourse : collection) {
+                        Student student = (Student) studentCourse;
+                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
+                            student.removeCourse(courseCode.getText());
+                            notFilled = false;
+                        }
+                    }
+                } catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    studentID.setBorder(redBorder);
+                    courseCode.setBorder(redBorder);
                 }
             }
+
         } else if (button == showCourses) {
             for (Object studentCourse : collection) {
                 Student student = (Student) studentCourse;
@@ -106,14 +131,23 @@ public class studentGUI extends Login implements ActionListener {
             for (Object studentCourse : collection) {
                 Student student = (Student) studentCourse;
                 if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    JOptionPane.showMessageDialog(null, student.getFees());
+                    JOptionPane.showMessageDialog(null, "Your fee is $" + student.getFees());
                 }
             }
         } else if (button == getStudentInfo) {
-            for (Object studentCourse : collection) {
-                Student student = (Student) studentCourse;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    JOptionPane.showMessageDialog(null, student.toString());
+            clear();
+            while (notFilled) {
+                try {
+                    for (Object studentCourse : collection) {
+                        Student student = (Student) studentCourse;
+                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
+                            JOptionPane.showMessageDialog(null, student.toString());
+                            notFilled = false;
+                        }
+                    }
+                } catch (NumberFormatException) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    studentID.setBorder(redBorder);
                 }
             }
         }
