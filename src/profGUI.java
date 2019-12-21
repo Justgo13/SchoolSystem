@@ -20,6 +20,11 @@ public class profGUI extends Login implements ActionListener {
     private JTextField grade;
 
     /**
+     * prof info field
+     */
+    private JTextField profInfoField;
+
+    /**
      * Create a prof GUI
      */
     public profGUI(){
@@ -48,6 +53,7 @@ public class profGUI extends Login implements ActionListener {
         studentID =  new JTextField();
         courseID = new JTextField();
         grade = new JTextField();
+        profInfoField = new JTextField();
 
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
@@ -63,20 +69,45 @@ public class profGUI extends Login implements ActionListener {
 
         Collection collection = studentHashMap.values();
         Object[] updateGradeField = {"Student ID", studentID, "Course ID", courseID, "Grade", grade};
+        Object[] profField = {"Employee ID", profInfoField};
+
+        boolean notFilled = true;
 
         if (button == updateGrade) {
-            JOptionPane.showMessageDialog(null, updateGradeField);
-            for (Object studentGrade : collection) {
-                Student student = (Student) studentGrade;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    student.setGrade(courseID.getText(), grade.getText());
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, updateGradeField);
+                    for (Object studentGrade : collection) {
+                        Student student = (Student) studentGrade;
+                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
+                            student.setGrade(courseID.getText(), grade.getText());
+                            notFilled = false;
+                        }
+                    }
+                } catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    studentID.setBorder(redBorder);
+                    courseID.setBorder(redBorder);
+                    grade.setBorder(redBorder);
                 }
             }
+
         } else if (button == getTeacherInfo) {
-            for (Object studentGrade : collection) {
-                Student student = (Student) studentGrade;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    JOptionPane.showMessageDialog(null, student.toString());
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, profField);
+                    for (Object profInfo : collection) {
+                        Professor prof = (Professor) profInfo;
+                        if (prof.getID() == Integer.parseInt(profInfoField.getText())) {
+                            JOptionPane.showMessageDialog(null, prof.toString());
+                            notFilled = false;
+                        }
+                    }
+                } catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    profInfoField.setBorder(redBorder);
                 }
             }
         }
