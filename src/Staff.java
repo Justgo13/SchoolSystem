@@ -21,19 +21,10 @@ public class Staff extends Person
      * @param age int age of the staff member
      * @param name String name of the staff member
      * @param salary int salary of the staff member
-     *
-     * @throws IllegalArgumentException If salary is below 0
-     * @throws IllegalArgumentException If employee ID is below 0
      */
     public Staff(int age, String name, int salary, int employeeID)
     {
         super(age, name);
-        if (salary < 0) {
-            throw new IllegalArgumentException("Salary can not be negative");
-        }
-        if (employeeID < 0) {
-            throw new IllegalArgumentException("Employee ID can not be negative");
-        }
         this.salary = salary;
         this.employeeID = employeeID;
     }
@@ -57,11 +48,9 @@ public class Staff extends Person
     }
 
     /**
-     * sets the salary of the Staff member
-     *
-     * @param salary An int representing the staff member salary
+     * Increase staff member salary and only used by Dean
      */
     public void setSalary(int salary) {
-        this.salary = salary;
+        this.salary += salary;
     }
 }
