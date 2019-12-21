@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Creates a Student
  *
@@ -57,15 +59,6 @@ public class Student extends Person
     }
 
     /**
-     * Returns the student's ID number
-     *
-     * @return An int representing student ID number
-     */
-    public int getID() {
-        return studentID;
-    }
-
-    /**
      * Adds a course for the student
      *
      * @param courseCode A String of the course code
@@ -76,24 +69,22 @@ public class Student extends Person
     }
 
     /**
-     * Gets an ArrayList of the course codes
-     * @return ArrayList<String> of all course codes </String>
-     */
-    public ArrayList<String> getCourse() {
-        ArrayList<String> course = new ArrayList<>();
-        for (String code : courses.keySet()) {
-            course.add(code);
-        }
-        return course;
-    }
-
-    /**
      * Removes a course for student
      */
     public void removeCourse(String courseCode) {
         courses.remove(courseCode);
         fees -= 500;
     }
+
+    /**
+     * Gets an ArrayList of the course codes
+     * @return ArrayList<String> of all course codes </String>
+     */
+    public HashMap<String,String> getCourse() {
+        return courses;
+    }
+
+
 
     /**
      * String of student major
@@ -119,20 +110,28 @@ public class Student extends Person
         return fees;
     }
 
-    /**
-     * Gets student ID
-     * @return int Student ID
-     */
-    public int getStudentID() {
-        return studentID;
+    public String getGrade() {
+        String grade = "";
+        for (Map.Entry<String, String> entry : courses.entrySet()) {
+            String k = entry.getKey();
+            String v = entry.getValue();
+            grade += k + ": " + v.toString() + "\n";
+        }
+        return grade;
     }
-
     /**
      * Updates student grade
      *
      */
     public void setGrade(String courseCode, String grade) {
         courses.put(courseCode, grade);
+    }
+
+    /**
+     * get student ID
+     */
+    public int getStudentID() {
+        return studentID;
     }
 
     /**
