@@ -86,6 +86,7 @@ public class deanGUI extends Login implements ActionListener {
                         if (prof.getID() == Integer.parseInt(professorID.getText())) {
                             prof.setSalary(Integer.parseInt(salaryIncreaseAmount.getText()));
                             JOptionPane.showMessageDialog(null, "You have changed " + prof.getName() + "'s salary to " + prof.getSalary());
+                            notFilled = false;
                         }
                     }
                 } catch (NumberFormatException err) {
@@ -103,6 +104,7 @@ public class deanGUI extends Login implements ActionListener {
                         Dean dean = (Dean) deanInfo;
                         if (dean.getID() == Integer.parseInt(deanID.getText())) {
                             JOptionPane.showMessageDialog(null, dean.toString());
+                            notFilled = false;
                         }
                     }
                 } catch (NumberFormatException err) {
