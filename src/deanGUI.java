@@ -74,21 +74,40 @@ public class deanGUI extends Login implements ActionListener {
         Object[] deanField = {"Dean ID", deanID};
 
         Collection collection = professorHashMap.values();
+        boolean notFilled = true;
+
         if (button == increaseSalary) {
-            JOptionPane.showMessageDialog(null, salaryField);
-            for (Object professor : collection) {
-                Professor prof = (Professor) professor;
-                if (prof.getID() == Integer.parseInt(professorID.getText())) {
-                    prof.setSalary(Integer.parseInt(salaryIncreaseAmount.getText()));
-                    JOptionPane.showMessageDialog(null, "You have changed " + prof.getName() + "'s salary to " + prof.getSalary());
+            clear();
+            while(notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, salaryField);
+                    for (Object professor : collection) {
+                        Professor prof = (Professor) professor;
+                        if (prof.getID() == Integer.parseInt(professorID.getText())) {
+                            prof.setSalary(Integer.parseInt(salaryIncreaseAmount.getText()));
+                            JOptionPane.showMessageDialog(null, "You have changed " + prof.getName() + "'s salary to " + prof.getSalary());
+                        }
+                    }
+                } catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    professorID.setBorder(redBorder);
+                    salaryIncreaseAmount.setBorder(redBorder);
                 }
             }
         } else if (button == getDeanInfo) {
-            JOptionPane.showMessageDialog(null, deanField);
-            for (Object deanInfo : collection) {
-                Dean dean = (Dean) deanInfo;
-                if (dean.getID() == Integer.parseInt(deanID.getText())) {
-                    JOptionPane.showMessageDialog(null, dean.toString());
+            clear();
+            while (notFilled) {
+                try {
+                    JOptionPane.showMessageDialog(null, deanField);
+                    for (Object deanInfo : collection) {
+                        Dean dean = (Dean) deanInfo;
+                        if (dean.getID() == Integer.parseInt(deanID.getText())) {
+                            JOptionPane.showMessageDialog(null, dean.toString());
+                        }
+                    }
+                } catch (NumberFormatException err) {
+                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
+                    deanID.setBorder(redBorder);
                 }
             }
         }
