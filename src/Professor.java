@@ -16,21 +16,16 @@ public class Professor extends Staff
      * @param age int age of the Professor
      * @param name String name of the Professor
      * @param salary int salary of the Professor
+     * @param employeeID int EmployeeID
      *
      * @throws IllegalArgumentException If courseTaught is empty
      * @throws NullPointerException If courseTaught is null
      */
-    public Professor(int age, String name, int salary, int employeeID, String courseTaught)
+    public Professor(int age, String name, int salary, int employeeID)
     {
         super(age, name, salary, employeeID);
 
-        if (courseTaught == null) {
-            throw new NullPointerException("Null passed in as courseTaught");
-        } else if (courseTaught == "") {
-            throw new IllegalArgumentException("courseTaught is empty");
-        }
-
-        this.courseTaught = courseTaught;
+        this.courseTaught = "";
     }
 
     /**
