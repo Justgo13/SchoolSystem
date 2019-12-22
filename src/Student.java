@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +12,7 @@ public class Student extends Person
     /**
      * A Dictionary storing all of the Student courses code and grade
      */
-    HashMap<String, String> courses;
+    private HashMap<String, String> courses;
 
     /**
      * String student major
@@ -64,7 +63,7 @@ public class Student extends Person
      * @param courseCode A String of the course code
      */
     public void addCourse(String courseCode) {
-        courses.put(courseCode, "EMPTY");
+        courses.put(courseCode, "NO GRADE");
         fees += 500;
     }
 
@@ -77,14 +76,12 @@ public class Student extends Person
     }
 
     /**
-     * Gets an ArrayList of the course codes
-     * @return ArrayList<String> of all course codes </String>
+     * Gets an HashMap of the course codes
+     * @return HashMap<String, String> Return the HashMap of all courses</String,>
      */
     public HashMap<String,String> getCourse() {
         return courses;
     }
-
-
 
     /**
      * String of student major
@@ -119,6 +116,7 @@ public class Student extends Person
         }
         return grade;
     }
+
     /**
      * Updates student grade
      *
