@@ -2,7 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
+import java.util.*;
 
 public class studentGUI extends Login implements ActionListener {
 
@@ -18,8 +18,15 @@ public class studentGUI extends Login implements ActionListener {
     /**
      * JTextField for registering course
      */
-    private JTextField studentID;
-    private JTextField courseCode;
+    private static JTextField courseCode;
+
+    /**
+     * Collections
+     */
+    private static boolean notFilled;
+    private static Collection<Student> studentCollection;
+    private static HashMap<String, String> courses;
+    private static Student student;
 
     /**
      * Creates student GUI
@@ -63,8 +70,16 @@ public class studentGUI extends Login implements ActionListener {
         getStudentInfo.addActionListener(this);
 
         // init TextField
-        studentID = new JTextField();
         courseCode = new JTextField();
+
+        studentCollection = studentHashMap.values();
+
+        // finds the correct student in Collection
+        for (Student student : studentCollection) {
+            if (student.getStudentID() == Integer.parseInt(usernameField.getText())) {
+                this.student = student;
+            }
+        }
 
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
@@ -77,76 +92,63 @@ public class studentGUI extends Login implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object o = e.getSource();
         JButton button = (JButton) o;
-        Object[] registerUnregister = {"Student ID", studentID, "Course code", courseCode};
-        Collection collection = studentHashMap.values();
-
-        boolean notFilled = true;
+        Object[] registerUnregister = {"Course code", courseCode};
 
         if (button == register) {
-            while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, registerUnregister);
-                    for (Object studentCourse : collection) {
-                        Student student = (Student) studentCourse;
-                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                            student.addCourse(courseCode.getText());
-                            notFilled = false;
-                        }
-                    }
-                } catch (NumberFormatException err) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    studentID.setBorder(redBorder);
+            notFilled = true;
+            courseCode.setBorder(null);
+            courseCode.setText(null);
+
+            while(notFilled) {
+                JOptionPane.showMessageDialog(null, registerUnregister);
+                if (courseCode.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Fill the course field");
                     courseCode.setBorder(redBorder);
+                    courseCode.setText(null);
+                } else {
+                    courses = student.getCourse();
+                    if (courses.containsKey(courseCode.getText())) {
+                        JOptionPane.showMessageDialog(null, "You have already registered for the course: " + courseCode.getText());
+                        notFilled = false;
+                    } else {
+                        student.addCourse(courseCode.getText());
+                        JOptionPane.showMessageDialog(null, "You have registered for " + courseCode.getText());
+                        notFilled = false;
+                    }
                 }
             }
-
         } else if (button == unregister) {
+            notFilled = true;
+            courseCode.setBorder(null);
+            courseCode.setText(null);
             while(notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, registerUnregister);
-                    for (Object studentCourse : collection) {
-                        Student student = (Student) studentCourse;
-                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                            student.removeCourse(courseCode.getText());
-                            notFilled = false;
-                        }
+                    courses = student.getCourse();
+                    if (!courses.containsKey(courseCode.getText())) {
+                        JOptionPane.showMessageDialog(null, "Course: " + courseCode.getText() + " is not a registered course");
+                        notFilled = false;
+                    } else {
+                        student.removeCourse(courseCode.getText());
+                        JOptionPane.showMessageDialog(null, "You have unregistered from " + courseCode.getText());
+                        notFilled = false;
                     }
                 } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    studentID.setBorder(redBorder);
                     courseCode.setBorder(redBorder);
                 }
             }
-
         } else if (button == showCourses) {
-            for (Object studentCourse : collection) {
-                Student student = (Student) studentCourse;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    JOptionPane.showMessageDialog(null, student.getCourse());
-                }
+            courses = student.getCourse();
+            String courseInfoString = "";
+            for (Map.Entry<String, String> entry : courses.entrySet()) {
+                courseInfoString += entry.getKey() + ": " + entry.getValue() + "\n";
             }
+            JOptionPane.showMessageDialog(null, courseInfoString);
         } else if (button == showFees) {
-            for (Object studentCourse : collection) {
-                Student student = (Student) studentCourse;
-                if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                    JOptionPane.showMessageDialog(null, "Your fee is $" + student.getFees());
-                }
-            }
+            JOptionPane.showMessageDialog(null, "Your fee is $" + student.getFees());
         } else if (button == getStudentInfo) {
-            while (notFilled) {
-                try {
-                    for (Object studentCourse : collection) {
-                        Student student = (Student) studentCourse;
-                        if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
-                            JOptionPane.showMessageDialog(null, student.toString());
-                            notFilled = false;
-                        }
-                    }
-                } catch (NumberFormatException err) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    studentID.setBorder(redBorder);
-                }
-            }
+            JOptionPane.showMessageDialog(null, student.toString());
         }
     }
 }
