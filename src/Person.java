@@ -20,23 +20,9 @@ public class Person
      *
      * @param age int age of the Person
      * @param name String name of the Person
-     *
-     * @throws IllegalArgumentException If age is less than 0 or greater than 100
-     * @throws IllegalArgumentException If name is empty
-     * @throws NullPointerException If name is null
      */
     public Person(int age, String name)
     {
-        if (age < 0 || age > 100) {
-            throw new IllegalArgumentException("Invalid age");
-        }
-
-        if (name == null) {
-            throw new NullPointerException("Null passed in as name");
-        } else if (name == "") {
-            throw new IllegalArgumentException("Name is empty");
-        }
-
         this.age = age;
         this.name = name;
     }
