@@ -1,5 +1,3 @@
-import org.w3c.dom.ls.LSOutput;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
