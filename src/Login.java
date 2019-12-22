@@ -25,7 +25,7 @@ public class Login implements ActionListener{
     /**
      * login field
      */
-    private JTextField usernameField;
+    protected static JTextField usernameField;
     private JTextField passwordField;
 
     /**
@@ -55,11 +55,23 @@ public class Login implements ActionListener{
     /**
      * HashMap of all the Professor, Dean, Student
      */
-    private HashMap<Integer, String> userPass;
+    private static HashMap<Integer, String> deanUserPass;
+    private static HashMap<Integer, String> profUserPass;
+    private static HashMap<Integer, String> studentUserPass;
     protected static HashMap<HashMap<Integer, String>, Dean> deanHashMap;
     protected static HashMap<HashMap<Integer,String>, Professor> professorHashMap;
     protected static HashMap<HashMap<Integer,String>, Student> studentHashMap;
 
+    /**
+     * Failsafe for program
+     */
+    public static final HashMap<Integer, String> failSafe = new HashMap<>();
+
+    /**
+     * Checks if user already registered
+     */
+    private static boolean notAlreadyRegistered;
+    private static boolean notFilled;
     /**
      * default login
      */
@@ -161,7 +173,11 @@ public class Login implements ActionListener{
         deanHashMap = new HashMap<>();
         professorHashMap = new HashMap<>();
         studentHashMap = new HashMap<>();
-        userPass = new HashMap<>();
+
+        // init userPass
+        deanUserPass = new HashMap<>();
+        profUserPass = new HashMap<>();
+        studentUserPass = new HashMap<>();
 
         // init textfield
         name = new JTextField();
@@ -169,6 +185,14 @@ public class Login implements ActionListener{
         schoolName = new JTextField();
         studentID = new JTextField();
         major = new JTextField();
+
+        /**
+         * Failsafe for program
+         */
+        failSafe.put(0,"fail");
+        deanHashMap.put(failSafe, new Dean(0, "fail", 0, 0, "fail"));
+        professorHashMap.put(failSafe, new Professor(0,"fail",0,0));
+        studentHashMap.put(failSafe, new Student(0, "fail", 0, "fail", 0));
 
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
@@ -181,6 +205,8 @@ public class Login implements ActionListener{
      * Clears all JTextFields
      */
     public void clear(){
+        name.setText(null);
+        name.setBorder(null);
         usernameField.setText(null);
         usernameField.setBorder(null);
         passwordField.setText(null);
@@ -207,13 +233,12 @@ public class Login implements ActionListener{
         Object[] profRegisterField = {"Name", name, "Age", employeeAge, "Salary", salary, "Username (Employee ID)", employeeID, "Password", passwordField};
         Object[] studentRegisterField = {"Name", name, "Age", studentAge, "Username (Student ID)", studentID, "Password", passwordField};
 
-        boolean notFilled = true;
         if (button == deanLogin) {
             clear();
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, loginField);
-                    if (userPass.containsKey(Integer.parseInt(usernameField.getText())) && userPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
+                    if (deanUserPass.containsKey(Integer.parseInt(usernameField.getText())) && deanUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
                         notFilled = false;
                         deanGUI dgui = new deanGUI();
                     } else {
@@ -231,7 +256,10 @@ public class Login implements ActionListener{
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, loginField);
-                    if (userPass.containsKey(Integer.parseInt(usernameField.getText())) && userPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
+                    if (profUserPass == null) {
+                        JOptionPane.showMessageDialog(null, "There are currently no professors");
+                        notFilled = false;
+                    } else if (profUserPass.containsKey(Integer.parseInt(usernameField.getText())) && profUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
                         notFilled = false;
                         profGUI prof = new profGUI();
                     } else {
@@ -249,7 +277,10 @@ public class Login implements ActionListener{
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, loginField);
-                    if (userPass.containsKey(Integer.parseInt(usernameField.getText())) && userPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
+                    if (studentUserPass == null) {
+                        JOptionPane.showMessageDialog(null, "There are currently no students");
+                        notFilled = false;
+                    } else if (studentUserPass.containsKey(Integer.parseInt(usernameField.getText())) && studentUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
                         notFilled = false;
                         studentGUI student = new studentGUI();
                     } else {
@@ -263,25 +294,57 @@ public class Login implements ActionListener{
                 }
             }
         } else if (button == registerButton) {
+            notFilled = true;
+            notAlreadyRegistered = true;
             clear();
             JOptionPane.showMessageDialog(null, registerChoiceField);
             while(notFilled) {
                 try {
                     if (registerChoice.getSelectedIndex() == 0) {
                         JOptionPane.showMessageDialog(null, deanRegisterField);
-                        userPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
-                        deanHashMap.put(userPass, new Dean((Integer)employeeAge.getSelectedItem(), name.getText(), (Integer)salary.getSelectedItem(), Integer.parseInt(employeeID.getText()), schoolName.getText()));
-                        notFilled = false;
+                        while (notAlreadyRegistered) {
+                            if (deanUserPass.containsKey(Integer.parseInt(employeeID.getText()))) {
+                                JOptionPane.showMessageDialog(null, "This employee ID belongs to somebody else please contact your supervisor for a new one");
+                                employeeID.setText(null);
+                                employeeID.setBorder(redBorder);
+                                JOptionPane.showMessageDialog(null, deanRegisterField);
+                            } else {
+                                deanUserPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
+                                deanHashMap.put(deanUserPass, new Dean((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), Integer.parseInt(employeeID.getText()), schoolName.getText()));
+                                notFilled = false;
+                                notAlreadyRegistered = false;
+                            }
+                        }
                     } else if (registerChoice.getSelectedIndex() == 1) {
                         JOptionPane.showMessageDialog(null, profRegisterField);
-                        userPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
-                        professorHashMap.put(userPass, new Professor((Integer)employeeAge.getSelectedItem(), name.getText(), (Integer)salary.getSelectedItem(), Integer.parseInt(employeeID.getText())));
-                        notFilled = false;
-                    } else {
+                        while (notAlreadyRegistered) {
+                            if (profUserPass.containsKey(Integer.parseInt(employeeID.getText()))) {
+                                JOptionPane.showMessageDialog(null, "This employee ID belongs to somebody else please contact your supervisor for a new one");
+                                employeeID.setText(null);
+                                employeeID.setBorder(redBorder);
+                                JOptionPane.showMessageDialog(null, profRegisterField);
+                            } else {
+                                profUserPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
+                                professorHashMap.put(profUserPass, new Professor((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), Integer.parseInt(employeeID.getText())));
+                                notFilled = false;
+                                notAlreadyRegistered = false;
+                            }
+                        }
+                    } else if (registerChoice.getSelectedIndex() == 2){
                         JOptionPane.showMessageDialog(null, studentRegisterField);
-                        userPass.put(Integer.parseInt(studentID.getText()), passwordField.getText());
-                        studentHashMap.put(userPass, new Student((Integer)employeeAge.getSelectedItem(), name.getText(), Integer.parseInt(studentID.getText()), major.getText(), (Integer)yearStanding.getSelectedItem()));
-                        notFilled = false;
+                        while (notAlreadyRegistered) {
+                            if (studentUserPass.containsKey(Integer.parseInt(studentID.getText()))) {
+                                JOptionPane.showMessageDialog(null, "This student ID belongs to someone else please ask your Student Office for a new ID");
+                                studentID.setText(null);
+                                studentID.setBorder(redBorder);
+                                JOptionPane.showMessageDialog(null, studentRegisterField);
+                            } else {
+                                studentUserPass.put(Integer.parseInt(studentID.getText()), passwordField.getText());
+                                studentHashMap.put(studentUserPass, new Student((Integer)employeeAge.getSelectedItem(), name.getText(), Integer.parseInt(studentID.getText()), major.getText(), (Integer)yearStanding.getSelectedItem()));
+                                notFilled = false;
+                                notAlreadyRegistered = false;
+                            }
+                        }
                     }
                 } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
