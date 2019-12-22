@@ -234,6 +234,7 @@ public class Login implements ActionListener{
         Object[] studentRegisterField = {"Name", name, "Age", studentAge, "Username (Student ID)", studentID, "Password", passwordField};
 
         if (button == deanLogin) {
+            notFilled = true;
             clear();
             while (notFilled) {
                 try {
@@ -252,6 +253,7 @@ public class Login implements ActionListener{
                 }
             }
         } else if (button == professorLogin) {
+            notFilled = true;
             clear();
             while (notFilled) {
                 try {
@@ -273,6 +275,7 @@ public class Login implements ActionListener{
                 }
             }
         } else if (button == studentLogin) {
+            notFilled = true;
             clear();
             while (notFilled) {
                 try {
