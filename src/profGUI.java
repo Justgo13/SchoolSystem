@@ -74,7 +74,6 @@ public class profGUI extends Login implements ActionListener {
         boolean notFilled = true;
 
         if (button == updateGrade) {
-            clear();
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, updateGradeField);
@@ -94,7 +93,6 @@ public class profGUI extends Login implements ActionListener {
             }
 
         } else if (button == getTeacherInfo) {
-            clear();
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, profField);

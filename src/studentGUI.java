@@ -83,7 +83,6 @@ public class studentGUI extends Login implements ActionListener {
         boolean notFilled = true;
 
         if (button == register) {
-            clear();
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, registerUnregister);
@@ -102,7 +101,6 @@ public class studentGUI extends Login implements ActionListener {
             }
 
         } else if (button == unregister) {
-            clear();
             while(notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, registerUnregister);
@@ -135,7 +133,6 @@ public class studentGUI extends Login implements ActionListener {
                 }
             }
         } else if (button == getStudentInfo) {
-            clear();
             while (notFilled) {
                 try {
                     for (Object studentCourse : collection) {
