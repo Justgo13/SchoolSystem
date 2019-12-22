@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collection;
+import java.util.HashMap;
 
 public class profGUI extends Login implements ActionListener {
 
@@ -15,14 +16,24 @@ public class profGUI extends Login implements ActionListener {
     /**
      * TextField for updating grades
      */
-    private JTextField studentID;
-    private JTextField courseID;
-    private JTextField grade;
+    private static JTextField studentID;
+    private static JTextField courseID;
+    private static JTextField grade;
 
     /**
      * prof info field
      */
-    private JTextField profInfoField;
+    private static JTextField profInfoField;
+
+    /**
+     * Collections
+     */
+    private static boolean notFilled;
+    private static Collection<Professor> professorCollection;
+    private static Collection<Student> studentCollection;
+    private Professor professor;
+    private Student student;
+    private HashMap<String, String> studentCourse;
 
     /**
      * Create a prof GUI
@@ -55,6 +66,16 @@ public class profGUI extends Login implements ActionListener {
         grade = new JTextField();
         profInfoField = new JTextField();
 
+        professorCollection = professorHashMap.values();
+
+        // gets specific prof
+        for (Professor professor : professorCollection) {
+            if (professor.getID() == Integer.parseInt(usernameField.getText())) {
+                this.professor = professor;
+            }
+        }
+        studentCollection = studentHashMap.values();
+
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setSize(800,200);
@@ -67,22 +88,43 @@ public class profGUI extends Login implements ActionListener {
         Object o = e.getSource();
         JButton button = (JButton) o;
 
-        Collection collection = studentHashMap.values();
         Object[] updateGradeField = {"Student ID", studentID, "Course ID", courseID, "Grade", grade};
         Object[] profField = {"Employee ID", profInfoField};
 
-        boolean notFilled = true;
-
         if (button == updateGrade) {
+            notFilled = true;
+            studentID.setBorder(null);
+            studentID.setText(null);
+            courseID.setText(null);
+            courseID.setBorder(null);
+            grade.setBorder(null);
+            grade.setText(null);
             while (notFilled) {
                 try {
                     JOptionPane.showMessageDialog(null, updateGradeField);
-                    for (Object studentGrade : collection) {
-                        Student student = (Student) studentGrade;
+
+                    student = null;
+                    for (Student student : studentCollection) {
                         if (student.getStudentID() == Integer.parseInt(studentID.getText())) {
+                            this.student = student;
+                        }
+                    }
+
+                    if (student == null) {
+                        JOptionPane.showMessageDialog(null, "ID does not match any student in database");
+                        notFilled = false;
+                    } else {
+                        studentCourse = student.getCourse();
+
+                        if (studentCourse.containsKey(courseID.getText())) {
                             student.setGrade(courseID.getText(), grade.getText());
+                            JOptionPane.showMessageDialog(null, "You have updated " + student.getName() + "'s grade for course: " + courseID.getText() + " to " + grade.getText());
+                            notFilled = false;
+                        } else {
+                            JOptionPane.showMessageDialog(null, "This course has not been register by the student");
                             notFilled = false;
                         }
+
                     }
                 } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
@@ -91,23 +133,8 @@ public class profGUI extends Login implements ActionListener {
                     grade.setBorder(redBorder);
                 }
             }
-
         } else if (button == getTeacherInfo) {
-            while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, profField);
-                    for (Object profInfo : collection) {
-                        Professor prof = (Professor) profInfo;
-                        if (prof.getID() == Integer.parseInt(profInfoField.getText())) {
-                            JOptionPane.showMessageDialog(null, prof.toString());
-                            notFilled = false;
-                        }
-                    }
-                } catch (NumberFormatException err) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    profInfoField.setBorder(redBorder);
-                }
-            }
+            JOptionPane.showMessageDialog(null, professor.toString());
         }
     }
 }
