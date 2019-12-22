@@ -17,14 +17,17 @@ public class deanGUI extends Login implements ActionListener {
     /**
      * JTextField for increasing salary
      */
-    private JTextField professorID;
-    private JTextField salaryIncreaseAmount;
+    private static JTextField professorID;
+    private static JComboBox<Integer> salaryIncreaseAmount;
 
     /**
-     * TextField for getting dean info
+     * Collections
      */
-    private JTextField deanID;
-
+    private static Collection<Professor> profCollection;
+    private static Collection<Dean> deanCollection;
+    private static boolean notFilled;
+    private Dean dean;
+    private Professor prof;
     /**
      * Create deanGUI
      */
@@ -52,8 +55,25 @@ public class deanGUI extends Login implements ActionListener {
         getDeanInfo.addActionListener(this);
 
         professorID = new JTextField();
-        salaryIncreaseAmount = new JTextField();
-        deanID = new JTextField();
+
+        Integer[] salaryIncrease = new Integer[5];
+        int value = 0;
+        for (int i=0; i < 5; i++) {
+            salaryIncrease[i] =  10000 + value;
+            value += 10000;
+        }
+
+        salaryIncreaseAmount = new JComboBox<>(salaryIncrease);
+
+        profCollection = professorHashMap.values();
+        deanCollection = deanHashMap.values();
+
+        // finds the correct Dean in Collection
+        for (Dean dean : deanCollection) {
+            if (dean.getID() == Integer.parseInt(usernameField.getText())) {
+                this.dean = dean;
+            }
+        }
 
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
@@ -71,47 +91,40 @@ public class deanGUI extends Login implements ActionListener {
         Object o = e.getSource();
         JButton button = (JButton) o;
         Object[] salaryField = {"Professor ID", professorID, "Salary increase by", salaryIncreaseAmount};
-        Object[] deanField = {"Dean ID", deanID};
-
-        Collection collection = professorHashMap.values();
-        boolean notFilled = true;
 
         if (button == increaseSalary) {
-            clear();
+            notFilled  = true;
+            professorID.setBorder(null);
+            professorID.setText(null);
+
             while(notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, salaryField);
-                    for (Object professor : collection) {
-                        Professor prof = (Professor) professor;
-                        if (prof.getID() == Integer.parseInt(professorID.getText())) {
-                            prof.setSalary(Integer.parseInt(salaryIncreaseAmount.getText()));
-                            JOptionPane.showMessageDialog(null, "You have changed " + prof.getName() + "'s salary to " + prof.getSalary());
-                            notFilled = false;
+                JOptionPane.showMessageDialog(null, salaryField);
+                if (professorID.getText().equals("")) {
+                    JOptionPane.showMessageDialog(null, "Fill the professor ID");
+                    professorID.setBorder(redBorder);
+                    professorID.setText(null);
+                } else {
+
+                    // finds the specific Professor
+                    prof = null;
+                    for (Professor professor : profCollection) {
+                        if (professor.getID() == Integer.parseInt(professorID.getText())) {
+                            prof = professor;
                         }
                     }
-                } catch (NumberFormatException err) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    professorID.setBorder(redBorder);
-                    salaryIncreaseAmount.setBorder(redBorder);
+
+                    if (prof == null) {
+                        JOptionPane.showMessageDialog(null, "ID does not match any professor in database");
+                        notFilled = false;
+                    } else {
+                        prof.setSalary((Integer) salaryIncreaseAmount.getSelectedItem());
+                        JOptionPane.showMessageDialog(null, "You have changed " + prof.getName() + "'s salary to " + prof.getSalary());
+                        notFilled = false;
+                    }
                 }
             }
         } else if (button == getDeanInfo) {
-            clear();
-            while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, deanField);
-                    for (Object deanInfo : collection) {
-                        Dean dean = (Dean) deanInfo;
-                        if (dean.getID() == Integer.parseInt(deanID.getText())) {
-                            JOptionPane.showMessageDialog(null, dean.toString());
-                            notFilled = false;
-                        }
-                    }
-                } catch (NumberFormatException err) {
-                    JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    deanID.setBorder(redBorder);
-                }
-            }
+            JOptionPane.showMessageDialog(null, dean.toString());
         }
     }
 }
