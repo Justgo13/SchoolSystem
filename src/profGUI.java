@@ -70,7 +70,7 @@ public class profGUI extends Login implements ActionListener {
 
         // gets specific prof
         for (Professor professor : professorCollection) {
-            if (professor.getID() == Integer.parseInt(usernameField.getText())) {
+            if (professor.getID() == (Integer) registeredProfID.getSelectedItem()) {
                 this.professor = professor;
             }
         }

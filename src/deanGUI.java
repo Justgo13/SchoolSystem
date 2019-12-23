@@ -70,7 +70,7 @@ public class deanGUI extends Login implements ActionListener {
 
         // finds the correct Dean in Collection
         for (Dean dean : deanCollection) {
-            if (dean.getID() == Integer.parseInt(usernameField.getText())) {
+            if (dean.getID() == (Integer) registeredDeanID.getSelectedItem()) {
                 this.dean = dean;
             }
         }

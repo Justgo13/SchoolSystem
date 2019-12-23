@@ -76,7 +76,7 @@ public class studentGUI extends Login implements ActionListener {
 
         // finds the correct student in Collection
         for (Student student : studentCollection) {
-            if (student.getStudentID() == Integer.parseInt(usernameField.getText())) {
+            if (student.getStudentID() == (Integer) registeredStudentID.getSelectedItem()) {
                 this.student = student;
             }
         }
