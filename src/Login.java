@@ -11,10 +11,10 @@ public class Login implements ActionListener{
     /**
      * Create main screen button
      */
-    JButton deanLogin;
-    JButton professorLogin;
-    JButton studentLogin;
-    JButton registerButton;
+    private JButton deanLogin;
+    private JButton professorLogin;
+    private JButton studentLogin;
+    private JButton registerButton;
 
     /**
      * red border for if input is null
@@ -29,7 +29,7 @@ public class Login implements ActionListener{
     /**
      * Register choice
      */
-    JComboBox<String> registerChoice;
+    private JComboBox<String> registerChoice;
 
     /**
      * Register fields
@@ -39,14 +39,17 @@ public class Login implements ActionListener{
     private JComboBox<Integer> studentAge;
 
     //// employee field
-    private JTextField employeeID;
     private JComboBox<Integer> salary;
 
     // dean specific
+    private JComboBox<Integer> deanID;
     private JTextField schoolName;
 
+    // prof specific
+    private JComboBox<Integer> profID;
+
     // student specific
-    private JTextField studentID;
+    private JComboBox<Integer> studentID;
     private JTextField major;
     private JComboBox<Integer> yearStanding;
 
@@ -70,6 +73,20 @@ public class Login implements ActionListener{
      */
     private static boolean notAlreadyRegistered;
     private static boolean notFilled;
+
+    /**
+     * ComboBox for username
+     */
+    protected static JComboBox<Integer> registeredDeanID;
+    protected static JComboBox<Integer> registeredProfID;
+    protected static JComboBox<Integer> registeredStudentID;
+
+    /**
+     * Data Integer array
+     */
+    private static Integer[] deanIDData;
+    private static  Integer[] profIDData;
+    private static Integer[] studentIDData;
     /**
      * default login
      */
@@ -164,6 +181,29 @@ public class Login implements ActionListener{
             yearStandingData[i] = i + 1;
         }
 
+        // Data for dean ID
+        deanIDData = new Integer[1000];
+        for (Integer i = 0; i < 1000; i++){
+            deanIDData[i] = 3000 + i;
+        }
+
+        // Data for prof ID
+        profIDData = new Integer[1000];
+        for (Integer i = 0; i < 1000; i++){
+            profIDData[i] = 2000 + i;
+        }
+
+        // Data for student ID
+        studentIDData = new Integer[1000];
+        for (Integer i = 0; i < 1000; i++){
+            studentIDData[i] = 1000 + i;
+        }
+
+        // init username checkbox
+        registeredDeanID = new JComboBox<>();
+        registeredProfID = new JComboBox<>();
+        registeredStudentID = new JComboBox<>();
+
         // year standing CheckBox
         yearStanding = new JComboBox<>(yearStandingData);
 
@@ -179,9 +219,10 @@ public class Login implements ActionListener{
 
         // init textfield
         name = new JTextField();
-        employeeID = new JTextField();
+        deanID = new JComboBox<>(deanIDData);
+        profID = new JComboBox<>(profIDData);
         schoolName = new JTextField();
-        studentID = new JTextField();
+        studentID = new JComboBox<>(studentIDData);
         major = new JTextField();
 
         /**
@@ -209,10 +250,6 @@ public class Login implements ActionListener{
         usernameField.setBorder(null);
         passwordField.setText(null);
         passwordField.setBorder(null);
-        employeeID.setText(null);
-        employeeID.setBorder(null);
-        studentID.setText(null);
-        studentID.setBorder(null);
         major.setText(null);
         major.setBorder(null);
     }
@@ -225,73 +262,72 @@ public class Login implements ActionListener{
         Object o = e.getSource();
         JButton button = (JButton) o;
 
-        Object[] loginField = {"Username", usernameField, "Password", passwordField};
+        Object[] deanloginField = {"Username", registeredDeanID, "Password", passwordField};
+        Object[] profloginField = {"Username", registeredProfID, "Password", passwordField};
+        Object[] studentloginField = {"Username", registeredStudentID, "Password", passwordField};
+
         Object[] registerChoiceField = {"Account type", registerChoice};
-        Object[] deanRegisterField = {"Name", name, "Age", employeeAge, "Salary", salary, "Username (Employee ID)", employeeID, "Password", passwordField, "School Managed", schoolName};
-        Object[] profRegisterField = {"Name", name, "Age", employeeAge, "Salary", salary, "Username (Employee ID)", employeeID, "Password", passwordField};
+        Object[] deanRegisterField = {"Name", name, "Age", employeeAge, "Salary", salary, "Username (Employee ID)", deanID, "Password", passwordField, "School Managed", schoolName};
+        Object[] profRegisterField = {"Name", name, "Age", employeeAge, "Salary", salary, "Username (Employee ID)", profID, "Password", passwordField};
         Object[] studentRegisterField = {"Name", name, "Age", studentAge, "Username (Student ID)", studentID, "Password", passwordField};
 
         if (button == deanLogin) {
             notFilled = true;
             clear();
             while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, loginField);
-                    if (deanUserPass.containsKey(Integer.parseInt(usernameField.getText())) && deanUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
-                        notFilled = false;
-                        deanGUI dgui = new deanGUI();
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No matching username and password found");
-                        notFilled = false;
-                    }
-                } catch (NumberFormatException err) {
+                JOptionPane.showMessageDialog(null, deanloginField);
+
+                if (passwordField.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    usernameField.setBorder(redBorder);
                     passwordField.setBorder(redBorder);
+                }
+                if (deanUserPass.containsKey(registeredDeanID.getSelectedItem()) && deanUserPass.get(registeredDeanID.getSelectedItem()).equals(passwordField.getText())) {
+                    notFilled = false;
+                    deanGUI dgui = new deanGUI();
+                } else {
+                    JOptionPane.showMessageDialog(null, "No matching username and password found");
+                    notFilled = false;
                 }
             }
         } else if (button == professorLogin) {
             notFilled = true;
             clear();
             while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, loginField);
-                    if (profUserPass == null) {
-                        JOptionPane.showMessageDialog(null, "There are currently no professors");
-                        notFilled = false;
-                    } else if (profUserPass.containsKey(Integer.parseInt(usernameField.getText())) && profUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
-                        notFilled = false;
-                        profGUI prof = new profGUI();
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No matching username and password found");
-                        notFilled = false;
-                    }
-                } catch (NumberFormatException err) {
+                JOptionPane.showMessageDialog(null, profloginField);
+
+                if (passwordField.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    usernameField.setBorder(redBorder);
                     passwordField.setBorder(redBorder);
+                }
+                if (profUserPass == null) {
+                    JOptionPane.showMessageDialog(null, "There are currently no professors");
+                    notFilled = false;
+                } else if (profUserPass.containsKey(registeredProfID.getSelectedItem()) && profUserPass.get(registeredProfID.getSelectedItem()).equals(passwordField.getText())) {
+                    notFilled = false;
+                    profGUI prof = new profGUI();
+                } else {
+                    JOptionPane.showMessageDialog(null, "No matching username and password found");
+                    notFilled = false;
                 }
             }
         } else if (button == studentLogin) {
             notFilled = true;
             clear();
             while (notFilled) {
-                try {
-                    JOptionPane.showMessageDialog(null, loginField);
-                    if (studentUserPass == null) {
-                        JOptionPane.showMessageDialog(null, "There are currently no students");
-                        notFilled = false;
-                    } else if (studentUserPass.containsKey(Integer.parseInt(usernameField.getText())) && studentUserPass.get(Integer.parseInt(usernameField.getText())).equals(passwordField.getText())) {
-                        notFilled = false;
-                        studentGUI student = new studentGUI();
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No matching username and password found");
-                        notFilled = false;
-                    }
-                } catch (NumberFormatException err) {
+                JOptionPane.showMessageDialog(null, studentloginField);
+                if (passwordField.getText().equals("")) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
-                    usernameField.setBorder(redBorder);
                     passwordField.setBorder(redBorder);
+                }
+                if (studentUserPass == null) {
+                    JOptionPane.showMessageDialog(null, "There are currently no students");
+                    notFilled = false;
+                } else if (studentUserPass.containsKey(registeredStudentID.getSelectedItem()) && studentUserPass.get(registeredStudentID.getSelectedItem()).equals(passwordField.getText())) {
+                    notFilled = false;
+                    studentGUI student = new studentGUI();
+                } else {
+                    JOptionPane.showMessageDialog(null, "No matching username and password found");
+                    notFilled = false;
                 }
             }
         } else if (button == registerButton) {
@@ -304,54 +340,37 @@ public class Login implements ActionListener{
                     if (registerChoice.getSelectedIndex() == 0) {
                         JOptionPane.showMessageDialog(null, deanRegisterField);
                         while (notAlreadyRegistered) {
-                            if (deanUserPass.containsKey(Integer.parseInt(employeeID.getText()))) {
-                                JOptionPane.showMessageDialog(null, "This employee ID belongs to somebody else please contact your supervisor for a new one");
-                                employeeID.setText(null);
-                                employeeID.setBorder(redBorder);
-                                JOptionPane.showMessageDialog(null, deanRegisterField);
-                            } else {
-                                deanUserPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
-                                deanHashMap.put(deanUserPass, new Dean((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), Integer.parseInt(employeeID.getText()), schoolName.getText()));
-                                notFilled = false;
-                                notAlreadyRegistered = false;
-                            }
+                            deanUserPass.put( (Integer) deanID.getSelectedItem(), passwordField.getText());
+                            deanHashMap.put(deanUserPass, new Dean((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), (Integer) deanID.getSelectedItem(), schoolName.getText()));
+                            registeredDeanID.addItem( (Integer) deanID.getSelectedItem());
+                            deanID.removeItemAt(deanID.getSelectedIndex());
+                            notFilled = false;
+                            notAlreadyRegistered = false;
                         }
                     } else if (registerChoice.getSelectedIndex() == 1) {
                         JOptionPane.showMessageDialog(null, profRegisterField);
                         while (notAlreadyRegistered) {
-                            if (profUserPass.containsKey(Integer.parseInt(employeeID.getText()))) {
-                                JOptionPane.showMessageDialog(null, "This employee ID belongs to somebody else please contact your supervisor for a new one");
-                                employeeID.setText(null);
-                                employeeID.setBorder(redBorder);
-                                JOptionPane.showMessageDialog(null, profRegisterField);
-                            } else {
-                                profUserPass.put(Integer.parseInt(employeeID.getText()), passwordField.getText());
-                                professorHashMap.put(profUserPass, new Professor((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), Integer.parseInt(employeeID.getText())));
-                                notFilled = false;
-                                notAlreadyRegistered = false;
-                            }
+                            profUserPass.put((Integer) profID.getSelectedItem(), passwordField.getText());
+                            professorHashMap.put(profUserPass, new Professor((Integer) employeeAge.getSelectedItem(), name.getText(), (Integer) salary.getSelectedItem(), (Integer) profID.getSelectedItem()));
+                            registeredProfID.addItem((Integer) profID.getSelectedItem());
+                            profID.removeItemAt(profID.getSelectedIndex());
+                            notFilled = false;
+                            notAlreadyRegistered = false;
                         }
                     } else if (registerChoice.getSelectedIndex() == 2){
                         JOptionPane.showMessageDialog(null, studentRegisterField);
                         while (notAlreadyRegistered) {
-                            if (studentUserPass.containsKey(Integer.parseInt(studentID.getText()))) {
-                                JOptionPane.showMessageDialog(null, "This student ID belongs to someone else please ask your Student Office for a new ID");
-                                studentID.setText(null);
-                                studentID.setBorder(redBorder);
-                                JOptionPane.showMessageDialog(null, studentRegisterField);
-                            } else {
-                                studentUserPass.put(Integer.parseInt(studentID.getText()), passwordField.getText());
-                                studentHashMap.put(studentUserPass, new Student((Integer)employeeAge.getSelectedItem(), name.getText(), Integer.parseInt(studentID.getText()), major.getText(), (Integer)yearStanding.getSelectedItem()));
-                                notFilled = false;
-                                notAlreadyRegistered = false;
-                            }
+                            studentUserPass.put((Integer) studentID.getSelectedItem(), passwordField.getText());
+                            studentHashMap.put(studentUserPass, new Student((Integer)employeeAge.getSelectedItem(), name.getText(), (Integer) studentID.getSelectedItem(), major.getText(), (Integer)yearStanding.getSelectedItem()));
+                            registeredStudentID.addItem((Integer) studentID.getSelectedItem());
+                            studentID.removeItemAt(studentID.getSelectedIndex());
+                            notFilled = false;
+                            notAlreadyRegistered = false;
                         }
                     }
                 } catch (NumberFormatException err) {
                     JOptionPane.showMessageDialog(null, "Please fill in all fields");
                     name.setBorder(redBorder);
-                    employeeID.setBorder(redBorder);
-                    studentID.setBorder(redBorder);
                     schoolName.setBorder(redBorder);
                     major.setBorder(redBorder);
                     yearStanding.setBorder(redBorder);
