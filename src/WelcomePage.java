@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.util.HashMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -45,7 +44,7 @@ public class WelcomePage implements ComponentListener, ActionListener{
 		registerButton.setFont(new Font("Arial", Font.PLAIN, 40));
 		
 		// add actionListners
-		addActionListners();
+		addActionListners(); 
 		
 		buttonPanel.add(loginButton);
 		buttonPanel.add(registerButton);
