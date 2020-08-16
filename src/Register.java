@@ -145,6 +145,7 @@ public class Register implements ActionListener, dataStorage{
 		
 		frame.setPreferredSize(new Dimension(800,600));
 		frame.pack();
+		frame.setResizable(false);
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.setLocationRelativeTo(null);

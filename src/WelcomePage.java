@@ -52,6 +52,7 @@ public class WelcomePage implements ComponentListener, ActionListener{
 		
 		frame.setPreferredSize(new Dimension(800,600));
 		frame.addComponentListener(this);
+		frame.setResizable(false);
 		frame.pack();
 		frame.setVisible(true);
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
