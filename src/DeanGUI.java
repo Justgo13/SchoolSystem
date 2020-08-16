@@ -31,9 +31,9 @@ public class DeanGUI implements ActionListener {
         deanPanel = new JPanel(new GridLayout(0,1));
         container.add(deanPanel);
 
-        setSalary = new JButton("Set professor salary");
+        setSalary = new JButton("SET PROFESSOR SALARY");
         setSalary.setFont(new Font("Arial", Font.BOLD, 40));
-        logout = new JButton("Cancel");
+        logout = new JButton("CANCEL");
         logout.setFont(new Font("Arial", Font.BOLD, 40));
         
         deanPanel.add(setSalary);
