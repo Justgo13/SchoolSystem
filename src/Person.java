@@ -7,41 +7,51 @@
 public class Person
 {
     /**
-     * int age of the Person
+     * String first name of the Person
      */
-    private int age;
-
+    private String firstName;
+    
     /**
-     * String name of the Person
+     * String last name of the Person
      */
-    private String name;
+    private String lastName;
+     
     /**
      * Creates a new Person with name and age
      *
      * @param age int age of the Person
      * @param name String name of the Person
      */
-    public Person(int age, String name)
+    public Person(String firstName, String lastName)
     {
-        this.age = age;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    
+    /**
+     * gets first name of the Person
+     * 
+     * @return String first name of Person
+     */
+    public String getFirstName() {
+    	return firstName;
     }
 
     /**
-     * gets the age of the Person
-     *
-     * @return age of the Person
+     * gets last name of the Person
+     * 
+     * @return String last name of Person
      */
-    public int getAge() {
-        return age;
+    public String getLastName() {
+    	return lastName;
     }
-
+    
     /**
      * gets the name of the Person
      *
      * @return name of the Person
      */
     public String getName() {
-        return name;
+        return firstName + " " + lastName;
     }
 }

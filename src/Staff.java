@@ -12,9 +12,9 @@ public class Staff extends Person
     private int salary;
 
     /**
-     * int for the staff ID number
+     * String for the staff ID number
      */
-    private int employeeID;
+    private String employeeID;
     /**
      * Creates a staff member
      *
@@ -22,9 +22,9 @@ public class Staff extends Person
      * @param name String name of the staff member
      * @param salary int salary of the staff member
      */
-    public Staff(int age, String name, int salary, int employeeID)
+    public Staff(String firstName, String lastName, int salary, String employeeID)
     {
-        super(age, name);
+        super(firstName, lastName);
         this.salary = salary;
         this.employeeID = employeeID;
     }
@@ -43,7 +43,7 @@ public class Staff extends Person
      *
      * @return salary of the Staff member
      */
-    public int getID() {
+    public String getID() {
         return employeeID;
     }
 

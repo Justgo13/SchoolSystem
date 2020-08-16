@@ -8,25 +8,24 @@ public class Professor extends Staff
 {
     /**
      * A String of the courseTaught by the Professor
-     */
+     */ 
     private String courseTaught;
     /**
      * Creates a new Professor
      *
-     * @param age int age of the Professor
-     * @param name String name of the Professor
-     * @param salary int salary of the Professor
-     * @param employeeID int EmployeeID
+     * @param firstName String first name of the Professor
+     * @param lastName String last name of the professor
+     * @param salary int salary of professor
+     * @param employeeID String professor employee ID and username
      *
      * @throws IllegalArgumentException If courseTaught is empty
      * @throws NullPointerException If courseTaught is null
      */
-    public Professor(int age, String name, int salary, int employeeID)
+    public Professor(String firstName, String lastName, int salary, String employeeID)
     {
-        super(age, name, salary, employeeID);
-
+        super(firstName, lastName, salary, employeeID);
         this.courseTaught = "";
-    }
+    } 
 
     /**
      * Gets the course taught by the teacher
@@ -39,14 +38,5 @@ public class Professor extends Staff
 
     public void updateGrade(Student student, String courseCode, String grade) {
         student.setGrade(courseCode, grade);
-    }
-
-    /**
-     * Prints String representing Professor information
-     *
-     * @return String of Professor information
-     */
-    public String toString() {
-        return (getName() + " is " + getAge() + " years old and teaches " + getCourse() + " while being paid $" + getSalary() + "/month");
     }
 }

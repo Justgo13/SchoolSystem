@@ -15,43 +15,24 @@ public class Student extends Person
     private HashMap<String, String> courses;
 
     /**
-     * String student major
-     */
-    private String major;
-
-    /**
-     * int Year standing
-     */
-    private int yearStanding;
-
-    /**
-     * double school fees
+     * int school fees
      */
     private int fees;
 
     /**
      * An int of the student's ID
      */
-    private int studentID;
+    private String studentID;
     /**
      * Creates a new student
      *
-     * @param age int age of the Student
-     * @param name String name of the Student
+     * @param firstName String first name of the student
+     * @param lastName String last name of the student
      * @param studentID An int representing student ID
-     * @param major String major of Student
-     * @param yearStanding int yearStanding of Student
-     *
-     * @throws IllegalArgumentException If student ID below 0
      */
-    public Student(int age, String name, int studentID, String major, int yearStanding)
+    public Student(String firstName, String lastName, String studentID)
     {
-        super(age, name);
-        if (studentID < 0) {
-            throw new IllegalArgumentException("Student ID must be a positive integer");
-        }
-        this.major = major;
-        this.yearStanding = yearStanding;
+        super(firstName, lastName);
         fees = 0;
         this.studentID = studentID;
         courses = new HashMap<>();
@@ -64,15 +45,15 @@ public class Student extends Person
      */
     public void addCourse(String courseCode) {
         courses.put(courseCode, "NO GRADE");
-        fees += 500;
+        setFees(getFees()+500);
     }
 
-    /**
+	/**
      * Removes a course for student
      */
     public void removeCourse(String courseCode) {
         courses.remove(courseCode);
-        fees -= 500;
+        setFees(getFees()-500);
     }
 
     /**
@@ -84,29 +65,26 @@ public class Student extends Person
     }
 
     /**
-     * String of student major
-     * @return String of student mojor
-     */
-    public String getMajor(){
-        return major;
-    }
-
-    /**
-     * int of yearStanding
-     * @return int of yearStanding
-     */
-    public int getYearStanding(){
-        return yearStanding;
-    }
-
-    /**
      * Get student fees
      * @return int representing student fee
      */
     public int getFees(){
         return fees;
     }
+    
+    /**
+     * Adds fees for the student
+     * @param fees
+     */
+    private void setFees(int fees) {
+		this.fees = fees;
+		
+	}
 
+    /**
+     * get all grades for the student
+     * @return
+     */
     public String getGrade() {
         String grade = "";
         for (Map.Entry<String, String> entry : courses.entrySet()) {
@@ -120,7 +98,7 @@ public class Student extends Person
     /**
      * Updates student grade
      *
-     */
+     */ 
     public void setGrade(String courseCode, String grade) {
         courses.put(courseCode, grade);
     }
@@ -128,16 +106,7 @@ public class Student extends Person
     /**
      * get student ID
      */
-    public int getStudentID() {
+    public String getStudentID() {
         return studentID;
-    }
-
-    /**
-     * Prints String representing Student information
-     *
-     * @return String of Student information
-     */
-    public String toString() {
-        return (getName() + " is " + getAge() + " years old, is in " + getMajor() + " year standing: " + getYearStanding());
     }
 }
