@@ -34,7 +34,7 @@ public class Person
      * @return String first name of Person
      */
     public String getFirstName() {
-    	return firstName;
+    	return firstName.substring(0, 1).toUpperCase() + firstName.substring(1, firstName.length());
     }
 
     /**
@@ -43,7 +43,7 @@ public class Person
      * @return String last name of Person
      */
     public String getLastName() {
-    	return lastName;
+    	return lastName.substring(0, 1).toUpperCase() + lastName.substring(1, lastName.length());
     }
     
     /**
@@ -52,6 +52,6 @@ public class Person
      * @return name of the Person
      */
     public String getName() {
-        return firstName + " " + lastName;
+        return firstName.substring(0, 1).toUpperCase() + firstName.substring(1, firstName.length()) + " " + lastName.substring(0, 1).toUpperCase() + lastName.substring(1, lastName.length());
     }
 }
