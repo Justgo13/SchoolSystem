@@ -5,6 +5,6 @@ import javax.swing.*;
  */
 public class main {
     public static void main (String[] args) {
-        Login login = new Login(true);
+        new WelcomePage();
     }
 }
