@@ -149,14 +149,17 @@ public class Login implements ActionListener, dataStorage {
 				if (deanUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
 					return true;
 				}
+				break;
 			case "Professor":
 				if (professorUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
 					return true;
 				}
+				break;
 			case "Student":
 				if (studentUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
 					return true;
 				}
+				break;
 		}
 		usernameField.setBorder(BorderFactory.createLineBorder(Color.RED));
 		passwordField.setBorder(BorderFactory.createLineBorder(Color.RED));
@@ -170,10 +173,13 @@ public class Login implements ActionListener, dataStorage {
     	switch ((String) accountTypeComboBox.getSelectedItem()) {
 			case "Dean":
 				new DeanGUI();
+			break;
 			case "Professor":
-				
+				new ProfGUI(professorUserPass.get(Map.of(usernameField.getText(), passwordField.getText())));
+			break;
 			case "Student":
-		
+				new StudentGUI(studentUserPass.get(Map.of(usernameField.getText(), passwordField.getText())));
+			break;
     	}
 	}
 }
