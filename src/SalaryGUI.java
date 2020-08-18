@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
@@ -108,16 +109,34 @@ public class SalaryGUI implements dataStorage, ActionListener{
 		Object o = e.getSource();
 		JButton button = (JButton) o;
 		if (button.equals(applyButton)) {
-			if (checkValidProfessor() && checkSalaryEmpty()) {
+			if (checkValidProfessor() && checkSalaryEmpty() && checkValidSalary()) {
 				applySalary((String) professorComboBox.getSelectedItem());
 				frame.dispose();
+			} else {
+				String errorList = "Valid professor: " + checkValidProfessor() + "\n" +
+				   		   		   "Salary entered: " + checkSalaryEmpty() + "\n" +
+				   		   		   "Salary is number: " + checkValidSalary();
+				JOptionPane.showMessageDialog(salaryPanel, errorList);
 			}
 		} else if (button.equals(cancelButton)) {
 			frame.dispose();
 		}
 		
 	}
-	
+	/**
+	 * Checks if salary is a number only
+	 * @return
+	 */
+	private boolean checkValidSalary() {
+		try {
+			Integer.parseInt(salaryField.getText());
+		} catch (NumberFormatException e) {
+			salaryField.setBorder(BorderFactory.createLineBorder(Color.RED));
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Applys salary to the chosen professor
 	 * @param professor
