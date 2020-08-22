@@ -1,8 +1,15 @@
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.*;
+import java.sql.SQLException;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
 
 public class StudentGUI implements ActionListener {
 
@@ -17,20 +24,15 @@ public class StudentGUI implements ActionListener {
 	private JFrame frame;
 	private Container container;
 	private JPanel studentPanel;
-
-    /**
-     * JTextField for registering course
-     */
-    private static JTextField courseCode;
     
-    private Student student;
+    private String studentID;
 
     /**
      * Creates student GUI
      */
-    public StudentGUI (Student student) {
+    public StudentGUI (String studentID) {
     	initStudentGUI();
-    	this.student = student;
+    	this.studentID = studentID;
     }
     
     public void initStudentGUI() {
@@ -68,9 +70,6 @@ public class StudentGUI implements ActionListener {
         showCourses.addActionListener(this);
         showFees.addActionListener(this);
 
-        // init TextField
-        courseCode = new JTextField();
-
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.pack();
         frame.setSize(800,600);
@@ -85,18 +84,59 @@ public class StudentGUI implements ActionListener {
         JButton button = (JButton) o;
 
         if (button.equals(registerCourse)) {
-        	new RegisterCourseGUI(student);
+        	new RegisterCourseGUI(studentID);
         } else if (button.equals(unregister)) {
-        	new UnregisterCourseGUI(student);
+        	new UnregisterCourseGUI(studentID);
         } else if (button.equals(showCourses)) {
-            String courseInfoString = student.getGrade();
-            if (courseInfoString.isEmpty()) {
-            	JOptionPane.showMessageDialog(studentPanel, "NO COURSES REGISTERED");
-            } else {
-            	JOptionPane.showMessageDialog(studentPanel, courseInfoString);
-            }
+        	String[] studentCourses = null;
+        	String[] studentGrades = null;
+        	try {
+	        	String courseInfoString = "";
+	            // grabs course string
+	 			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+	 			MainRun.myStmt.setString(1, studentID);
+	 			MainRun.myRs = MainRun.myStmt.executeQuery();
+	 			
+	 			if (MainRun.myRs.next()) {
+	 				studentCourses = MainRun.myRs.getString("courses").split(",");
+	 			}
+	 			
+	 			// grabs grades string
+	 			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
+	 			MainRun.myStmt.setString(1, studentID);
+	 			MainRun.myRs = MainRun.myStmt.executeQuery();
+	 			
+	 			if (MainRun.myRs.next()) {
+	 				studentGrades = MainRun.myRs.getString("grades").split(",");
+	 			}
+	 			
+	 			for (int i = 0; i < studentCourses.length; i++) {
+	 				if (studentCourses[i].isEmpty()) {
+	 					continue;
+	 				}
+	 				courseInfoString += studentCourses[i] + ": " + studentGrades[i] + "\n";
+	 			}
+	 			
+	            if (courseInfoString.isEmpty()) {
+	            	JOptionPane.showMessageDialog(studentPanel, "NO COURSES REGISTERED");
+	            } else {
+	            	JOptionPane.showMessageDialog(studentPanel, courseInfoString);
+	            }
+        	} catch (SQLException err) {
+        		err.getStackTrace();
+        	}
         } else if (button.equals(showFees)) {
-            JOptionPane.showMessageDialog(studentPanel, "Your fee is $" + student.getFees());
+        	try {
+	        	MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT tuitionFee FROM student WHERE studentID = ?");
+	        	MainRun.myStmt.setString(1, studentID);
+	        	MainRun.myRs = MainRun.myStmt.executeQuery();
+	        	
+	        	if (MainRun.myRs.next()) {
+	        		JOptionPane.showMessageDialog(studentPanel, "Your fee is $" + MainRun.myRs.getString("tuitionFee"));
+	        	}
+        	} catch (SQLException error) {
+        		error.getStackTrace();
+        	}
         }
     }
 }

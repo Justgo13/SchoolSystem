@@ -7,9 +7,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -26,7 +26,7 @@ import javax.swing.WindowConstants;
  * @author jgao2
  *
  */
-public class Register implements ActionListener, dataStorage{
+public class Register implements ActionListener{
 	private JFrame frame;
 	private Container contentPane;
 	private JPanel panel;
@@ -159,14 +159,19 @@ public class Register implements ActionListener, dataStorage{
 			// register success when no fields missing, password match, username not in database, and account type valid
 			if (checkIfFieldFilled() 
 					&& passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText())
-					&& userNameErrorCheck(userIDField.getText())
+					&& userNameErrorCheck()
 					&& accountTypeErrorCheck()) {
-				storeFields(userIDField.getText(), passwordField.getText());
+				try {
+					storeFields(userIDField.getText(), passwordField.getText(), firstNameField.getText(), lastNameField.getText());
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				frame.dispose();
 			} else {
 				String errorList = "Fields filled: " + checkIfFieldFilled() + "\n" + 
 								   "Password match: " + passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText()) + "\n" +
-								   "Username unique: " + userNameErrorCheck(userIDField.getText()) + "\n" +
+								   "Username unique: " + userNameErrorCheck() + "\n" +
 								   "Account type valid: " + accountTypeErrorCheck();
 				JOptionPane.showMessageDialog(panel, errorList);
 			}
@@ -202,32 +207,70 @@ public class Register implements ActionListener, dataStorage{
 	}
 	
 	/**
-	 * Checks if username already exists
+	 * Checks if username already exists in database
+	 * @throws SQLException 
 	 */
-	private boolean userNameErrorCheck(String userID) {
-		if (userPass.contains(userID) || userIDField.getText().isEmpty()) {
-			userIDField.setBorder(BorderFactory.createLineBorder(Color.RED));
-			return false;
+	private boolean userNameErrorCheck() {
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT username FROM userpass WHERE username = ?");
+			MainRun.myStmt.setString(1, userIDField.getText());
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			if (MainRun.myRs.next() || userIDField.getText().isEmpty()) {
+				userIDField.setBorder(BorderFactory.createLineBorder(Color.RED));
+				return false;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		return true;
+		
 	}
 
 	/**
-	 * Stores inputted fields into hashmap
+	 * Stores inputted fields into SQL database
+	 * @throws SQLException 
 	 */
-	private void storeFields(String username, String password) {
-		if (!userPass.contains(username)) {
-			userPass.add(username);
-			switch ((String) accountTypeComboBox.getSelectedItem()) {
-				case "Dean":
-					deanUserPass.put(Map.of(username, password), new Dean(firstNameField.getText(), lastNameField.getText(), 0, userIDField.getText()));
-					break;
-				case "Professor":
-					professorUserPass.put(Map.of(username, password), new Professor(firstNameField.getText(), lastNameField.getText(), 0, userIDField.getText()));
-					break;
-				case "Student":
-					studentUserPass.put(Map.of(username, password), new Student(firstNameField.getText(), lastNameField.getText(), userIDField.getText()));
-			}
+	private void storeFields(String username, String password, String firstName, String lastName) throws SQLException {
+		// creates account
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO userpass VALUES (?, ?)");
+			MainRun.myStmt.setString(1, username);
+			MainRun.myStmt.setString(2, password);
+			MainRun.myStmt.executeUpdate();
+		} catch (SQLException e) {
+			
+		}
+		switch ((String) accountTypeComboBox.getSelectedItem()) {
+			case "Dean":
+				// creates dean object
+				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO dean VALUES (?, ?, ?, ?)");
+				MainRun.myStmt.setString(1, username);
+				MainRun.myStmt.setString(2, firstName);
+				MainRun.myStmt.setString(3, lastName);
+				MainRun.myStmt.setString(4, "0");
+				MainRun.myStmt.executeUpdate();
+				break;
+			case "Professor":
+				// creates professor object
+				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO professor VALUES (?, ?, ?, ?, ?)");
+				MainRun.myStmt.setString(1, username);
+				MainRun.myStmt.setString(2, firstName);
+				MainRun.myStmt.setString(3, lastName);
+				MainRun.myStmt.setString(4, "0");
+				MainRun.myStmt.setString(5, "EMPTY");
+				MainRun.myStmt.executeUpdate();
+				break;
+			case "Student":
+				// creates student object
+				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO student VALUES (?, ?, ?, ?, ?, ?)");
+				MainRun.myStmt.setString(1, username);
+				MainRun.myStmt.setString(2, firstName);
+				MainRun.myStmt.setString(3, lastName);
+				MainRun.myStmt.setInt(4, 0);
+				MainRun.myStmt.setString(5, "");
+				MainRun.myStmt.setString(6, "");
+				MainRun.myStmt.executeUpdate();
+				break;
 		}
 	}
 

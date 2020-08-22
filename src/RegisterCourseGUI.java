@@ -6,6 +6,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -22,7 +27,7 @@ import javax.swing.WindowConstants;
  *
  */
 public class RegisterCourseGUI implements ActionListener{
-	private Student student;
+	private String studentID;
 	private JFrame frame;
 	private Container container;
 	private JPanel registerPanel;
@@ -31,8 +36,8 @@ public class RegisterCourseGUI implements ActionListener{
 	private JButton registerButton;
 	private JButton cancelButton;
 	private GridBagConstraints constraints;
-	public RegisterCourseGUI(Student student) {
-		this.student = student;
+	public RegisterCourseGUI(String studentID) {
+		this.studentID = studentID;
 		initRegisterCourse();
 	}
 	private void initRegisterCourse() {
@@ -108,18 +113,104 @@ public class RegisterCourseGUI implements ActionListener{
 	 * @return true if course is not registerd, false otherwise
 	 */
 	private boolean checkAlreadyRegistered() {
-		if (student.getCourse().containsKey(courseCodeField.getText())) {
-			courseCodeField.setBorder(BorderFactory.createLineBorder(Color.RED));
-			return false;
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, studentID);
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			
+			if (MainRun.myRs.next()) {
+				String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+				List<String> studentCourseList = Arrays.asList(studentCourses);
+				ArrayList<String> courses = new ArrayList<String>(studentCourseList);
+				
+				if (courses.contains(courseCodeField.getText())) {
+					courseCodeField.setBorder(BorderFactory.createLineBorder(Color.RED));
+					return false;
+				}
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return true;
 	}
+	
 	/**
 	 * Adds course to the list of student courses
 	 */
 	private void addCourse(String courseCode) {
-		student.addCourse(courseCode);
+		ArrayList<String> courses = null;
+		ArrayList<String> grades = null;
+		try {
+			// grabs course string
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, studentID);
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			
+			if (MainRun.myRs.next()) {
+				if (MainRun.myRs.getString("courses") == null) {
+					courses = new ArrayList<String>();
+				} else {
+					String[] studentCourses = MainRun.myRs.getString("courses").split(",");
+					List<String> studentCourseList = Arrays.asList(studentCourses);
+					courses = new ArrayList<String>(studentCourseList);
+				}
+			}
+			// grabs grades string
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, studentID);
+			ResultSet gradeResultSet = MainRun.myStmt.executeQuery();
+			
+			if (gradeResultSet.next()) {
+				if (gradeResultSet.getString("grades") == null) {
+					grades = new ArrayList<String>();
+				} else {
+					String[] studentGrades = gradeResultSet.getString("grades").split(",");
+					List<String> studentGradeList = Arrays.asList(studentGrades);
+					grades = new ArrayList<String>(studentGradeList);
+				}
+			}
+			
+			courses.add(courseCode);
+			grades.add("CUR");
+			String courseToPass = "";
+			String gradeToPass = "";
+			for (String courseToUpdate : courses) {
+				if (courseToUpdate.isEmpty()) {
+					continue;
+				}
+				courseToPass += courseToUpdate + ",";
+			}
+			for (String gradeToUpdate : grades) {
+				if (gradeToUpdate.isEmpty()) {
+					continue;
+				}
+				gradeToPass += gradeToUpdate + ",";
+			}
+			
+			// gets current tuitionFee
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT tuitionFee FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, studentID);
+			ResultSet tuitionFee = MainRun.myStmt.executeQuery();
+			
+			if (tuitionFee.next()) {
+				MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET tuitionFee = ? WHERE studentID = ?");
+				MainRun.myStmt.setInt(1, Integer.parseInt(tuitionFee.getString("tuitionFee"))+500);
+				MainRun.myStmt.setString(2, studentID);
+				MainRun.myStmt.executeUpdate();
+			}
+			
+			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET courses = ?, grades = ? WHERE studentID = ?");
+			MainRun.myStmt.setString(1, courseToPass);
+			MainRun.myStmt.setString(2, gradeToPass);
+			MainRun.myStmt.setString(3, studentID);
+			MainRun.myStmt.executeUpdate();
+		} catch (SQLException e) {
+			e.getStackTrace();
+		}
 	}
+	
 	/**
 	 * Checks if course code is empty
 	 * @return true if course code is fill, false otherwise

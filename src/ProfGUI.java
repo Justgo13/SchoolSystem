@@ -1,31 +1,35 @@
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Collection;
-import java.util.HashMap;
 
-public class ProfGUI implements ActionListener, dataStorage {
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.WindowConstants;
+
+public class ProfGUI implements ActionListener {
 
     /**
      * JButton for teacher
      */
     private JButton updateGrade;
     
-    private Professor professor;
-
 	private JFrame frame;
 
 	private Container container;
 
 	private JPanel profPanel;
+	
+	private String profID;
 
     /**
      * Create a prof GUI
      * @param professor, Student student 
      */
-    public ProfGUI(Professor professor){
-    	this.professor = professor;
+    public ProfGUI(String profID){
+    	this.profID = profID;
     	initProfGUI();
     }
     
@@ -60,7 +64,7 @@ public class ProfGUI implements ActionListener, dataStorage {
         JButton button = (JButton) o;
         
         if (button.equals(updateGrade)) {
-        	new UpdateGradeGUI(professor);
+        	new UpdateGradeGUI(profID);
         }
     } 
 }

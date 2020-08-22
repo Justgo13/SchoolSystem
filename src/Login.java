@@ -1,15 +1,28 @@
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.WindowConstants;
 /**
  * Login screen GUI
  */
-public class Login implements ActionListener, dataStorage {
+public class Login implements ActionListener {
     private JTextField usernameField;
     private JTextField passwordField;
 	private JFrame frame;
@@ -22,7 +35,7 @@ public class Login implements ActionListener, dataStorage {
 	private JLabel password;
 	private JButton loginButton;
 	private JButton cancelButton;
-
+	private String accountSelection;
     /**
      * Creates login GUI
      */
@@ -109,11 +122,10 @@ public class Login implements ActionListener, dataStorage {
         JButton button = (JButton) o;
 
         if (button.equals(loginButton)) {
-
         	// login success when no fields missing, valid password, username exists, and account type valid
 			if (checkAccountDetails((String) accountTypeComboBox.getSelectedItem())
 					&& accountTypeErrorCheck()) {
-				loginSuccess();
+				loginSuccess(accountSelection);
 				frame.dispose();
 			} else {
 				String errorList = "Account details: " + checkAccountDetails((String) accountTypeComboBox.getSelectedItem()) + "\n" +
@@ -144,22 +156,45 @@ public class Login implements ActionListener, dataStorage {
 	 * @return boolean true if it matches database, false otherwise
 	 */
 	private boolean checkAccountDetails(String accountType) {
-		switch (accountType) {
-			case "Dean":
-				if (deanUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
-					return true;
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT * FROM userPass WHERE username = ? AND password = ?");
+			MainRun.myStmt.setString(1, usernameField.getText());
+			MainRun.myStmt.setString(2, passwordField.getText());
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			if (MainRun.myRs.next()) {
+				switch (accountType) {
+					case "Dean":
+						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT deanID FROM dean WHERE deanID = ?");
+						MainRun.myStmt.setString(1, usernameField.getText());
+						MainRun.myRs = MainRun.myStmt.executeQuery();
+						if (MainRun.myRs.next()) {
+							accountSelection = "Dean";
+							return true;
+						}
+						break;
+					case "Professor":
+						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT professorID FROM professor WHERE professorID = ?");
+						MainRun.myStmt.setString(1, usernameField.getText());
+						MainRun.myRs = MainRun.myStmt.executeQuery();
+						if (MainRun.myRs.next()) {
+							accountSelection = "Professor";
+							return true;
+						}
+						break;
+					case "Student":
+						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT studentID FROM student WHERE studentID = ?");
+						MainRun.myStmt.setString(1, usernameField.getText());
+						MainRun.myRs = MainRun.myStmt.executeQuery();
+						if (MainRun.myRs.next()) {
+							accountSelection = "Student";
+							return true;
+						}
+						break;
 				}
-				break;
-			case "Professor":
-				if (professorUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
-					return true;
-				}
-				break;
-			case "Student":
-				if (studentUserPass.containsKey(Map.of(usernameField.getText(), passwordField.getText()))) {
-					return true;
-				}
-				break;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		usernameField.setBorder(BorderFactory.createLineBorder(Color.RED));
 		passwordField.setBorder(BorderFactory.createLineBorder(Color.RED));
@@ -169,16 +204,16 @@ public class Login implements ActionListener, dataStorage {
 	/**
 	 * Opens the correct gui panel based on login details
 	 */
-	private void loginSuccess() {
-    	switch ((String) accountTypeComboBox.getSelectedItem()) {
+	private void loginSuccess(String accountSelection) {
+    	switch (accountSelection) {
 			case "Dean":
 				new DeanGUI();
 			break;
 			case "Professor":
-				new ProfGUI(professorUserPass.get(Map.of(usernameField.getText(), passwordField.getText())));
+				new ProfGUI(usernameField.getText());
 			break;
 			case "Student":
-				new StudentGUI(studentUserPass.get(Map.of(usernameField.getText(), passwordField.getText())));
+				new StudentGUI(usernameField.getText());
 			break;
     	}
 	}

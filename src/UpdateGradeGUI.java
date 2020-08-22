@@ -5,8 +5,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,22 +26,22 @@ import javax.swing.WindowConstants;
  * @author jgao2
  *
  */
-public class UpdateGradeGUI implements dataStorage, ActionListener {
+public class UpdateGradeGUI implements ActionListener {
 	private JFrame frame;
 	private Container contentPane;
 	private JPanel gradePanel;
 	private JButton applyButton;
 	private JButton cancelButton;
-	private ArrayList<String> studentNames;
+	private ArrayList<String> studentIDs;
 	private JComboBox<Object> studentComboBox;
 	private JLabel gradeLabel;
 	private JTextField gradeField;
 	private GridBagConstraints constraints;
 	private JComboBox<?> courseComboBox;
 	private ArrayList<String> courseCode;
-	private Professor professor;
-	public UpdateGradeGUI(Professor professor) {
-		this.professor = professor;
+	private String profID;
+	public UpdateGradeGUI(String profID) {
+		this.profID = profID;
 		initUpdateGradeGUI();
 	}
 	private void initUpdateGradeGUI() {
@@ -53,25 +56,58 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 		applyButton.addActionListener(this);
 		cancelButton.addActionListener(this);
 		
-		studentNames = new ArrayList<String>();
-		studentNames.add("Choose a student");
-		// create JComboBox
-		for (Student student : studentCollection) {
-			studentNames.add(student.getName());
+		// professor courses to comboBox
+		courseCode = new ArrayList<String>();
+		courseCode.add("Choose a course code");
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courseTaught FROM professor WHERE professorID = ?");
+			MainRun.myStmt.setString(1, profID);
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			if (MainRun.myRs.next()) {
+				String [] courseTaught = MainRun.myRs.getString("courseTaught").split(",");
+				List<String> professorCourseList = Arrays.asList(courseTaught);
+				ArrayList<String> courses = new ArrayList<String>(professorCourseList);
+				courses.forEach(c -> courseCode.add(c));
+			}
+		} catch (SQLException e){
+			e.getStackTrace();
 		}
 		
-		studentComboBox = new JComboBox<Object>(studentNames.toArray());
+		studentIDs = new ArrayList<String>();
+		studentIDs.add("Choose a student");
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT studentID FROM student");
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			
+			while (MainRun.myRs.next()) {
+				MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+				MainRun.myStmt.setString(1, MainRun.myRs.getString("studentID"));
+				ResultSet studentCourse = MainRun.myStmt.executeQuery();
+				if (studentCourse.next()) {
+					String [] course = studentCourse.getString("courses").split(",");
+					List<String> studentCourseList = Arrays.asList(course);
+					ArrayList<String> courses = new ArrayList<String>(studentCourseList);
+					for (String c : courses) {
+						if (courseCode.contains(c)) {
+							studentIDs.add(MainRun.myRs.getString("studentID"));
+						}
+					}
+				}
+			}			
+			
+			while (MainRun.myRs.next()) {
+			}
+		} catch (SQLException e) {
+			e.getStackTrace();
+		}
+		
+		studentComboBox = new JComboBox<Object>(studentIDs.toArray());
 		
 		// creating salary label and textfield
 		gradeLabel = new JLabel("Enter grade");
 		gradeField = new JTextField();
 		
-		// student registered courses to comboBox
-		courseCode = new ArrayList<String>();
-		courseCode.add("Choose a course code");
-		courseCode.add(professor.getCourse());
 		courseComboBox = new JComboBox<>(courseCode.toArray());
-		
 		constraints = new GridBagConstraints();
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 0.0;
@@ -127,7 +163,7 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 			} else {
 				String errorList = "Valid student: " + checkValidStudent() + "\n" +
 				   		   		   "Grade inputted: " + checkGradeEmpty() + "\n" +
-				   		   		   "Grade is valid" + checkValidGrade() + "\n" +
+				   		   		   "Grade is valid: " + checkValidGrade() + "\n" +
 				   		   		   "Course code chosen: " + checkSelectedCourseCode() + "\n" +
 				   		   		   "Course code exist for student: " + courseCodeExistForStudent();
 				JOptionPane.showMessageDialog(gradePanel, errorList);
@@ -141,13 +177,24 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 	 */
 	}
 	private boolean courseCodeExistForStudent() {
-		for (Student student : studentCollection) {
-			if (student.getName().equals((String) studentComboBox.getSelectedItem())) {
-				if (student.getCourse().containsKey(courseComboBox.getSelectedItem())) {
-					courseComboBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-					return true;
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			
+			if (MainRun.myRs.next()) {
+				String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+				List<String> studentCourseList = Arrays.asList(studentCourses);
+				ArrayList<String> courses = new ArrayList<String>(studentCourseList);
+				
+				for (String course : courses) {
+					if (course.equals((String) courseComboBox.getSelectedItem())) {
+						return true;
+					}
 				}
 			}
+		} catch (SQLException e) {
+			e.getStackTrace();
 		}
 		courseComboBox.setBorder(BorderFactory.createLineBorder(Color.RED));
 		return false;
@@ -171,13 +218,72 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 	 * @param studentName name of the Student getting a grade change
 	 */
 	private void applyGrade(String studentName) {
-		for (Student studentObj : studentCollection) {
-			if (studentObj.getName().equals(studentName)) {
-				studentObj.setGrade((String) courseComboBox.getSelectedItem(), gradeField.getText());
+		ArrayList<String> courses = null;
+		ArrayList<String> grades = null;
+		try {
+			// grabs course string
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			
+			if (MainRun.myRs.next()) {
+				if (MainRun.myRs.getString("courses") == null) {
+					courses = new ArrayList<String>();
+				} else {
+					String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+					List<String> studentCourseList = Arrays.asList(studentCourses);
+					courses = new ArrayList<String>(studentCourseList);
+				}
 			}
+			
+			// grabs grades string
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
+			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
+			ResultSet gradeResultSet = MainRun.myStmt.executeQuery();
+			
+			if (gradeResultSet.next()) {
+				if (gradeResultSet.getString("grades") == null) {
+					grades = new ArrayList<String>();
+				} else {
+					String [] studentGrades = gradeResultSet.getString("grades").split(",");
+					List<String> studentGradeList = Arrays.asList(studentGrades);
+					grades = new ArrayList<String>(studentGradeList);
+				}
+			}
+			
+			
+			// finds course to change and changes corresponding course grade
+			for (int i = 0; i < courses.size(); i++) {
+				if (courses.get(i).equals((String) courseComboBox.getSelectedItem())) {
+					grades.set(i, gradeField.getText());
+				}
+			}
+			
+			String courseToPass = "";
+			String gradeToPass = "";
+			for (String courseToUpdate : courses) {
+				if (courseToUpdate.isEmpty()) {
+					continue;
+				}
+				courseToPass += courseToUpdate + ",";
+			}
+			for (String gradeToUpdate : grades) {
+				if (gradeToUpdate.isEmpty()) {
+					continue;
+				}
+				gradeToPass += gradeToUpdate + ",";
+			}
+			
+			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET courses = ?, grades = ? WHERE studentID = ?");
+			MainRun.myStmt.setString(1, courseToPass);
+			MainRun.myStmt.setString(2, gradeToPass);
+			MainRun.myStmt.setString(3, (String) studentComboBox.getSelectedItem());
+			MainRun.myStmt.executeUpdate();
+		} catch (SQLException e) {
+			e.getStackTrace();
 		}
 	}
-
+	
 	/**
 	 * Checks if grade field is empty
 	 * @return false if empty, true otherwise
@@ -201,7 +307,7 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 		} else {
 			studentComboBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		}
-		return false;
+		return true;
 	}
 	
 	/**
@@ -215,6 +321,6 @@ public class UpdateGradeGUI implements dataStorage, ActionListener {
 		} else {
 			courseComboBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		}
-		return false;
+		return true;
 	}
 }

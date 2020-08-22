@@ -1,11 +1,11 @@
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
@@ -23,12 +23,12 @@ import javax.swing.WindowConstants;
  * @author jgao2
  *
  */
-public class SalaryGUI implements dataStorage, ActionListener{
+public class SalaryGUI implements ActionListener{
 	private JFrame frame;
 	private Container contentPane;
 	private JPanel salaryPanel;
 	private JComboBox<Object> professorComboBox;
-	private ArrayList<String> professorNames;
+	private ArrayList<String> professorIDs;
 	private JTextField salaryField;
 	private GridBagConstraints constraints;
 	private JLabel salaryLabel;
@@ -51,14 +51,24 @@ public class SalaryGUI implements dataStorage, ActionListener{
 		applyButton.addActionListener(this);
 		cancelButton.addActionListener(this);
 		
-		professorNames = new ArrayList<String>();
-		professorNames.add("Choose a professor");
-		// create JComboBox
-		for (Professor professor : professorCollection) {
-			professorNames.add(professor.getName());
+		// creating and setup JComboBox
+		professorIDs = new ArrayList<String>();
+		professorIDs.add("Choose a professor");
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT professorID FROM professor");
+			MainRun.myRs = MainRun.myStmt.executeQuery();
+			if (!MainRun.myRs.next()) {
+				System.out.println("Nothing was queried");
+			} else {
+				do {
+					professorIDs.add(MainRun.myRs.getString("professorID"));
+				} while (MainRun.myRs.next());
+			}
+		} catch (SQLException e) {
+			e.getStackTrace();
 		}
 		
-		professorComboBox = new JComboBox<Object>(professorNames.toArray());
+		professorComboBox = new JComboBox<Object>(professorIDs.toArray());
 		
 		// creating salary label and textfield
 		salaryLabel = new JLabel("Enter salary");
@@ -142,10 +152,14 @@ public class SalaryGUI implements dataStorage, ActionListener{
 	 * @param professor
 	 */
 	private void applySalary(String professor) {
-		for (Professor professorObj : professorCollection) {
-			if (professorObj.getName().equals(professor)) {
-				professorObj.setSalary(Integer.parseInt(salaryField.getText()));
-			}
+		try {
+			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE professor SET salary = ? WHERE professorID = ?");
+			MainRun.myStmt.setString(1, salaryField.getText());
+			MainRun.myStmt.setString(2, (String) professorComboBox.getSelectedItem());
+			MainRun.myStmt.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
@@ -168,6 +182,6 @@ public class SalaryGUI implements dataStorage, ActionListener{
 		} else {
 			professorComboBox.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 		}
-		return false;
+		return true;
 	}
 }
