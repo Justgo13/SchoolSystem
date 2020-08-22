@@ -6,6 +6,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.SQLException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -30,6 +33,21 @@ public class WelcomePage implements ComponentListener, ActionListener{
 	
 	public void init() {
 		frame = new JFrame("University Application");
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+		    public void windowClosing(WindowEvent e)
+		    {
+		        super.windowClosing(e);
+		        try {
+					MainRun.myConn.close();
+					System.out.println("Server disconnected");
+			        System.exit(0);
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+		    }
+		});
 		contentPane = frame.getContentPane();
 		buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(0,1));
