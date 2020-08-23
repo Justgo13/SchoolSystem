@@ -247,7 +247,7 @@ public class Register implements ActionListener{
 				MainRun.myStmt.setString(1, username);
 				MainRun.myStmt.setString(2, firstName);
 				MainRun.myStmt.setString(3, lastName);
-				MainRun.myStmt.setString(4, "0");
+				MainRun.myStmt.setInt(4, 0);
 				MainRun.myStmt.executeUpdate();
 				break;
 			case "Professor":
@@ -256,8 +256,8 @@ public class Register implements ActionListener{
 				MainRun.myStmt.setString(1, username);
 				MainRun.myStmt.setString(2, firstName);
 				MainRun.myStmt.setString(3, lastName);
-				MainRun.myStmt.setString(4, "0");
-				MainRun.myStmt.setString(5, "EMPTY");
+				MainRun.myStmt.setInt(4, 0);
+				MainRun.myStmt.setString(5, null);
 				MainRun.myStmt.executeUpdate();
 				break;
 			case "Student":
