@@ -40,8 +40,16 @@ public class UpdateGradeGUI implements ActionListener {
 	private JComboBox<?> courseComboBox;
 	private ArrayList<String> courseCode;
 	private String profID;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
 	public UpdateGradeGUI(String profID) {
 		this.profID = profID;
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
 		initUpdateGradeGUI();
 	}
 	private void initUpdateGradeGUI() {
@@ -57,53 +65,19 @@ public class UpdateGradeGUI implements ActionListener {
 		cancelButton.addActionListener(this);
 		
 		// professor courses to comboBox
-		courseCode = new ArrayList<String>();
+		courseCode = new ArrayList<>();
 		courseCode.add("Choose a course code");
-		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courseTaught FROM professor WHERE professorID = ?");
-			MainRun.myStmt.setString(1, profID);
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			if (MainRun.myRs.next()) {
-				String [] courseTaught = MainRun.myRs.getString("courseTaught").split(",");
-				List<String> professorCourseList = Arrays.asList(courseTaught);
-				ArrayList<String> courses = new ArrayList<String>(professorCourseList);
-				courses.forEach(c -> courseCode.add(c));
-			}
-		} catch (SQLException e){
-			e.getStackTrace();
-		}
-		
-		studentIDs = new ArrayList<String>();
+
+		populateProfessorCourses();
+
+		studentIDs = new ArrayList<>();
 		studentIDs.add("Choose a student");
-		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT studentID FROM student");
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			while (MainRun.myRs.next()) {
-				MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-				MainRun.myStmt.setString(1, MainRun.myRs.getString("studentID"));
-				ResultSet studentCourse = MainRun.myStmt.executeQuery();
-				if (studentCourse.next()) {
-					String [] course = studentCourse.getString("courses").split(",");
-					List<String> studentCourseList = Arrays.asList(course);
-					ArrayList<String> courses = new ArrayList<String>(studentCourseList);
-					for (String c : courses) {
-						if (courseCode.contains(c)) {
-							studentIDs.add(MainRun.myRs.getString("studentID"));
-						}
-					}
-				}
-			}			
-			
-			while (MainRun.myRs.next()) {
-			}
-		} catch (SQLException e) {
-			e.getStackTrace();
-		}
+
+		populateStudents();
+
+		studentComboBox = new JComboBox<>(studentIDs.toArray());
 		
-		studentComboBox = new JComboBox<Object>(studentIDs.toArray());
-		
-		// creating salary label and textfield
+		// creating salary label and textField
 		gradeLabel = new JLabel("Enter grade");
 		gradeField = new JTextField();
 		
@@ -152,6 +126,56 @@ public class UpdateGradeGUI implements ActionListener {
         frame.setVisible(true);
 	}
 
+	private void populateStudents() {
+		SQLInstance = new SQLQuery();
+		query = "SELECT studentID FROM student";
+		queryParams.clear();
+		queryResult = SQLInstance.runQuery(query, queryParams);
+		try {
+			ResultSet studentQuery;
+			while (queryResult.next()) {
+				query = "SELECT courses FROM student WHERE studentID = ?";
+				queryParams.clear();
+				queryParams.add(queryResult.getString("studentID"));
+				studentQuery = SQLInstance.runQuery(query, queryParams);
+				if (studentQuery.next()) {
+					String [] course = studentQuery.getString("courses").split(",");
+					List<String> studentCourseList = Arrays.asList(course);
+					ArrayList<String> courses = new ArrayList<String>(studentCourseList);
+					for (String c : courses) {
+						if (courseCode.contains(c)) {
+							studentIDs.add(queryResult.getString("studentID"));
+						}
+					}
+				}
+			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
+		} catch (SQLException e) {
+			e.getStackTrace();
+		}
+	}
+
+	private void populateProfessorCourses() {
+		SQLInstance = new SQLQuery();
+		query = "SELECT courseTaught FROM professor WHERE professorID = ?";
+		queryParams.clear();
+		queryParams.add(profID);
+		queryResult = SQLInstance.runQuery(query, queryParams);
+		try {
+			if (queryResult.next()) {
+				String [] courseTaught = queryResult.getString("courseTaught").split(",");
+				List<String> professorCourseList = Arrays.asList(courseTaught);
+				ArrayList<String> courses = new ArrayList<String>(professorCourseList);
+				courses.forEach(c -> courseCode.add(c));
+			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
+		} catch (SQLException e){
+			e.getStackTrace();
+		}
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object o = e.getSource();
@@ -177,22 +201,25 @@ public class UpdateGradeGUI implements ActionListener {
 	 */
 	}
 	private boolean courseCodeExistForStudent() {
+		SQLInstance = new SQLQuery();
+		query = "SELECT courses FROM student WHERE studentID = ?";
+		queryParams.clear();
+		queryParams.add((String) studentComboBox.getSelectedItem());
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+			if (queryResult.next()) {
+				String [] studentCourses = queryResult.getString("courses").split(",");
 				List<String> studentCourseList = Arrays.asList(studentCourses);
-				ArrayList<String> courses = new ArrayList<String>(studentCourseList);
+				ArrayList<String> courses = new ArrayList<>(studentCourseList);
 				
 				for (String course : courses) {
-					if (course.equals((String) courseComboBox.getSelectedItem())) {
+					if (course.equals(courseComboBox.getSelectedItem())) {
 						return true;
 					}
 				}
 			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -220,41 +247,46 @@ public class UpdateGradeGUI implements ActionListener {
 	private void applyGrade(String studentName) {
 		ArrayList<String> courses = null;
 		ArrayList<String> grades = null;
+		SQLInstance = new SQLQuery();
+		query = "SELECT courses FROM student WHERE studentID = ?";
+		queryParams.clear();
+		queryParams.add((String) studentComboBox.getSelectedItem());
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			// grabs course string
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				if (MainRun.myRs.getString("courses") == null) {
-					courses = new ArrayList<String>();
-				} else {
-					String [] studentCourses = MainRun.myRs.getString("courses").split(",");
-					List<String> studentCourseList = Arrays.asList(studentCourses);
-					courses = new ArrayList<String>(studentCourseList);
-				}
+			if (queryResult.next()) {
+				String [] studentCourses = queryResult.getString("courses").split(",");
+				List<String> studentCourseList = Arrays.asList(studentCourses);
+				courses = new ArrayList<String>(studentCourseList);
+//				if (MainRun.myRs.getString("courses") == null) {
+//					courses = new ArrayList<String>();
+//				} else {
+//					String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+//					List<String> studentCourseList = Arrays.asList(studentCourses);
+//					courses = new ArrayList<String>(studentCourseList);
+//				}
 			}
+
+			query = "SELECT grades FROM student WHERE studentID = ?";
+			queryParams.clear();
+			queryParams.add((String) studentComboBox.getSelectedItem());
+			queryResult = SQLInstance.runQuery(query, queryParams);
 			
-			// grabs grades string
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, (String) studentComboBox.getSelectedItem());
-			ResultSet gradeResultSet = MainRun.myStmt.executeQuery();
-			
-			if (gradeResultSet.next()) {
-				if (gradeResultSet.getString("grades") == null) {
-					grades = new ArrayList<String>();
-				} else {
-					String [] studentGrades = gradeResultSet.getString("grades").split(",");
-					List<String> studentGradeList = Arrays.asList(studentGrades);
-					grades = new ArrayList<String>(studentGradeList);
-				}
+			if (queryResult.next()) {
+				String [] studentGrades = queryResult.getString("grades").split(",");
+				List<String> studentGradeList = Arrays.asList(studentGrades);
+				grades = new ArrayList<String>(studentGradeList);
+//				if (queryResult.getString("grades") == null) {
+//					grades = new ArrayList<String>();
+//				} else {
+//					String [] studentGrades = gradeResultSet.getString("grades").split(",");
+//					List<String> studentGradeList = Arrays.asList(studentGrades);
+//					grades = new ArrayList<String>(studentGradeList);
+//				}
 			}
-			
-			
+
 			// finds course to change and changes corresponding course grade
 			for (int i = 0; i < courses.size(); i++) {
-				if (courses.get(i).equals((String) courseComboBox.getSelectedItem())) {
+				if (courses.get(i).equals(courseComboBox.getSelectedItem())) {
 					grades.set(i, gradeField.getText());
 				}
 			}
@@ -273,12 +305,15 @@ public class UpdateGradeGUI implements ActionListener {
 				}
 				gradeToPass += gradeToUpdate + ",";
 			}
-			
-			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET courses = ?, grades = ? WHERE studentID = ?");
-			MainRun.myStmt.setString(1, courseToPass);
-			MainRun.myStmt.setString(2, gradeToPass);
-			MainRun.myStmt.setString(3, (String) studentComboBox.getSelectedItem());
-			MainRun.myStmt.executeUpdate();
+
+			query = "UPDATE student SET courses = ?, grades = ? WHERE studentID = ?";
+			queryParams.clear();
+			queryParams.add(courseToPass);
+			queryParams.add(gradeToPass);
+			queryParams.add((String) studentComboBox.getSelectedItem());
+			SQLInstance.runUpdate(query, queryParams);
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}

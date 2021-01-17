@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -34,8 +35,16 @@ public class SalaryGUI implements ActionListener{
 	private JLabel salaryLabel;
 	private JButton applyButton;
 	private JButton cancelButton;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
 
 	public SalaryGUI() {
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
 		initSalaryGUI();
 	}
 	
@@ -54,16 +63,20 @@ public class SalaryGUI implements ActionListener{
 		// creating and setup JComboBox
 		professorIDs = new ArrayList<String>();
 		professorIDs.add("Choose a professor");
+
+		SQLInstance = new SQLQuery();
+		query = "SELECT professorID FROM professor";
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT professorID FROM professor");
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			if (!MainRun.myRs.next()) {
+			if (!queryResult.next()) {
 				System.out.println("Nothing was queried");
 			} else {
 				do {
-					professorIDs.add(MainRun.myRs.getString("professorID"));
-				} while (MainRun.myRs.next());
+					professorIDs.add(queryResult.getString("professorID"));
+				} while (queryResult.next());
 			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -152,13 +165,17 @@ public class SalaryGUI implements ActionListener{
 	 * @param professor
 	 */
 	private void applySalary(String professor) {
+		SQLInstance = new SQLQuery();
+		query = "UPDATE professor SET salary = ? WHERE professorID = ?";
+		queryParams.clear();
+		queryParams.add(salaryField.getText());
+		queryParams.add((String) professorComboBox.getSelectedItem());
+		SQLInstance.runUpdate(query, queryParams);
+
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE professor SET salary = ? WHERE professorID = ?");
-			MainRun.myStmt.setString(1, salaryField.getText());
-			MainRun.myStmt.setString(2, (String) professorComboBox.getSelectedItem());
-			MainRun.myStmt.executeUpdate();
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

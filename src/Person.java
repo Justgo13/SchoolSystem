@@ -19,8 +19,8 @@ public class Person
     /**
      * Creates a new Person with name and age
      *
-     * @param age int age of the Person
-     * @param name String name of the Person
+     * @param firstName first name of the Person
+     * @param lastName last name of the Person
      */
     public Person(String firstName, String lastName)
     {

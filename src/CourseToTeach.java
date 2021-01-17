@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,8 +25,7 @@ import javax.swing.WindowConstants;
  * @author jgao2
  *
  */
-public class CourseToTeach implements ActionListener{
-	private JFrame frame;
+public class CourseToTeach extends JFrame implements ActionListener{
 	private Container contentPane;
 	private JPanel panel;
 	private JButton applyButton;
@@ -33,15 +33,22 @@ public class CourseToTeach implements ActionListener{
 	private JLabel courseCodeLabel;
 	private JTextField courseCodeField;
 	private String profID;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
 
 	public CourseToTeach(String profID) {
 		this.profID = profID;
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
 		initCourseToTeach();
 	}
 	
 	public void initCourseToTeach() {
-		frame = new JFrame();
-		contentPane = frame.getContentPane();
+		contentPane = this.getContentPane();
 		panel = new JPanel(new GridBagLayout());
 		contentPane.add(panel);
 		
@@ -80,12 +87,12 @@ public class CourseToTeach implements ActionListener{
 		constraints.gridy = 2;
 		panel.add(cancelButton, constraints);
 		
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        frame.pack();
-        frame.setSize(800,600);
-        frame.setResizable(true);
-        frame.setVisible(true);
-        frame.setLocationRelativeTo(null);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        pack();
+        setSize(800,600);
+        setResizable(true);
+        setVisible(true);
+        setLocationRelativeTo(null);
 	}
 
 	@Override
@@ -96,15 +103,14 @@ public class CourseToTeach implements ActionListener{
 		if (button.equals(applyButton)) {
 			if (!checkAlreadyAdded()) {
 				addCourseTaught();
-				frame.dispose();
+				dispose();
 			} else {
 				String errorList = "Course already added: " + checkAlreadyAdded();
 				JOptionPane.showMessageDialog(contentPane, errorList);
 			}
 		} else if (button.equals(cancelButton)) {
-			frame.dispose();
+			dispose();
 		}
-		
 	}
 	
 	/**
@@ -112,27 +118,40 @@ public class CourseToTeach implements ActionListener{
 	 * @return
 	 */
 	private boolean checkAlreadyAdded() {
-		ArrayList<String> courseTaught = null;
+		ArrayList<String> courseTaught;
+		SQLInstance = new SQLQuery();
+		query = "SELECT courseTaught FROM professor WHERE professorID = ?";
+		queryParams.clear();
+		queryParams.add(profID);
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courseTaught FROM professor WHERE professorID = ?");
-			MainRun.myStmt.setString(1, profID);
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				if (MainRun.myRs.getString("courseTaught") == null) {
-					courseTaught = new ArrayList<String>();
-				} else {
-					String [] professorCourses = MainRun.myRs.getString("courseTaught").split(",");
-					List<String> professorCourseList = Arrays.asList(professorCourses);
-					courseTaught = new ArrayList<String>(professorCourseList);
-					
-					for (String course : courseTaught) {
-						if (course.equals(courseCodeField.getText())) {
-							courseCodeField.setBorder(BorderFactory.createLineBorder(Color.RED));
-							return true;
-						}
+			if (queryResult.next()) {
+				String [] professorCourses = queryResult.getString("courseTaught").split(",");
+				List<String> professorCourseList = Arrays.asList(professorCourses);
+				courseTaught = new ArrayList<>(professorCourseList);
+
+				for (String course : courseTaught) {
+					if (course.equals(courseCodeField.getText())) {
+						courseCodeField.setBorder(BorderFactory.createLineBorder(Color.RED));
+						return true;
 					}
 				}
+//				if (queryResult.getString("courseTaught") == null) {
+//					courseTaught = new ArrayList<String>();
+//				} else {
+//					String [] professorCourses = MainRun.myRs.getString("courseTaught").split(",");
+//					List<String> professorCourseList = Arrays.asList(professorCourses);
+//					courseTaught = new ArrayList<String>(professorCourseList);
+//
+//					for (String course : courseTaught) {
+//						if (course.equals(courseCodeField.getText())) {
+//							courseCodeField.setBorder(BorderFactory.createLineBorder(Color.RED));
+//							return true;
+//						}
+//					}
+//				}
+				SQLInstance.getMyConn().close();
+				System.out.println("Connection terminated");
 			}
 		} catch (SQLException e) {
 			e.getStackTrace();
@@ -145,22 +164,25 @@ public class CourseToTeach implements ActionListener{
 	 * Add course taught
 	 */
 	private void addCourseTaught() {
-		ArrayList<String> courseTaught = null;
+		ArrayList<String> courseTaught;
+		SQLInstance = new SQLQuery();
+		query = "SELECT courseTaught FROM professor WHERE professorID = ?";
+		queryParams.clear();
+		queryParams.add(profID);
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courseTaught FROM professor WHERE professorID = ?");
-			MainRun.myStmt.setString(1, profID);
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				if (MainRun.myRs.getString("courseTaught") == null) {
-					courseTaught = new ArrayList<String>();
-				} else {
-					String [] course = MainRun.myRs.getString("courseTaught").split(",");
-					List<String> professorCourseTaughtList = Arrays.asList(course);
-					courseTaught = new ArrayList<String>(professorCourseTaughtList);
-				}
+			if (queryResult.next()) {
+				String [] course = queryResult.getString("courseTaught").split(",");
+				List<String> professorCourseTaughtList = Arrays.asList(course);
+				courseTaught = new ArrayList<>(professorCourseTaughtList);
+//				if (MainRun.myRs.getString("courseTaught") == null) {
+//					courseTaught = new ArrayList<String>();
+//				} else {
+//					String [] course = queryResult.getString("courseTaught").split(",");
+//					List<String> professorCourseTaughtList = Arrays.asList(course);
+//					courseTaught = new ArrayList<>(professorCourseTaughtList);
+//				}
 				courseTaught.add(courseCodeField.getText());
-				
 				String courseToPass = "";
 				for (String courseToUpdate : courseTaught) {
 					if (courseToUpdate.isEmpty()) {
@@ -168,11 +190,18 @@ public class CourseToTeach implements ActionListener{
 					}
 					courseToPass += courseToUpdate + ",";
 				}
-				
-				MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE professor SET courseTaught = ? WHERE professorID = ?");
-				MainRun.myStmt.setString(1, courseToPass);
-				MainRun.myStmt.setString(2, profID);
-				MainRun.myStmt.executeUpdate();
+
+				query = "SELECT courseTaught FROM professor WHERE professorID = ?";
+				queryParams.clear();
+				queryParams.add(courseToPass);
+				queryParams.add(profID);
+				SQLInstance.runUpdate(query, queryParams);
+				SQLInstance.getMyConn().close();
+				System.out.println("Connection terminated");
+//				queryResult = MainRun.myConn.prepareStatement("UPDATE professor SET courseTaught = ? WHERE professorID = ?");
+//				queryResult.setString(1, courseToPass);
+//				queryResult.setString(2, profID);
+//				queryResult.executeUpdate();
 				}
 			} catch (SQLException e1) {
 				e1.getStackTrace();

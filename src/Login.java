@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,9 @@ import javax.swing.WindowConstants;
 /**
  * Login screen GUI
  */
-public class Login implements ActionListener {
+public class Login extends JFrame implements ActionListener {
     private JTextField usernameField;
     private JTextField passwordField;
-	private JFrame frame;
 	private Container contentPane;
 	private JPanel loginPanel;
 	private GridBagConstraints constraints;
@@ -36,16 +36,23 @@ public class Login implements ActionListener {
 	private JButton loginButton;
 	private JButton cancelButton;
 	private String accountSelection;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
     /**
      * Creates login GUI
      */
     public Login() {
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
     	initLogin();
     }
     
     public void initLogin() {
-        frame = new JFrame();
-        contentPane = frame.getContentPane();
+        contentPane = getContentPane();
 
         loginPanel = new JPanel(new GridBagLayout());
         contentPane.add(loginPanel);
@@ -109,11 +116,11 @@ public class Login implements ActionListener {
 		constraints.gridy = 4;
 		loginPanel.add(cancelButton, constraints);
 
-        frame.setPreferredSize(new Dimension(800,600));
-		frame.pack();
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
+        setPreferredSize(new Dimension(800,600));
+		pack();
+		setVisible(true);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(null);
     }
 
 	@Override
@@ -126,14 +133,14 @@ public class Login implements ActionListener {
 			if (checkAccountDetails((String) accountTypeComboBox.getSelectedItem())
 					&& accountTypeErrorCheck()) {
 				loginSuccess(accountSelection);
-				frame.dispose();
+				dispose();
 			} else {
 				String errorList = "Account details: " + checkAccountDetails((String) accountTypeComboBox.getSelectedItem()) + "\n" +
 						   		   "Account type valid: " + accountTypeErrorCheck();
 				JOptionPane.showMessageDialog(loginPanel, errorList);
 			}
         } else if (button.equals(cancelButton)) {
-			frame.dispose();
+			dispose();
 		}
 	}
 	
@@ -156,44 +163,50 @@ public class Login implements ActionListener {
 	 * @return boolean true if it matches database, false otherwise
 	 */
 	private boolean checkAccountDetails(String accountType) {
+		SQLInstance = new SQLQuery();
+		query = "SELECT * FROM userPass WHERE username = ? AND password = ?";
+		queryParams.clear();
+		queryParams.add(usernameField.getText());
+		queryParams.add(passwordField.getText());
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT * FROM userPass WHERE username = ? AND password = ?");
-			MainRun.myStmt.setString(1, usernameField.getText());
-			MainRun.myStmt.setString(2, passwordField.getText());
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			if (MainRun.myRs.next()) {
+			if (queryResult.next()) {
 				switch (accountType) {
 					case "Dean":
-						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT deanID FROM dean WHERE deanID = ?");
-						MainRun.myStmt.setString(1, usernameField.getText());
-						MainRun.myRs = MainRun.myStmt.executeQuery();
-						if (MainRun.myRs.next()) {
+						query = "SELECT deanID FROM dean WHERE deanID = ?";
+						queryParams.clear();
+						queryParams.add(usernameField.getText());
+						queryResult = SQLInstance.runQuery(query, queryParams);
+						if (queryResult.next()) {
 							accountSelection = "Dean";
 							return true;
 						}
 						break;
 					case "Professor":
-						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT professorID FROM professor WHERE professorID = ?");
-						MainRun.myStmt.setString(1, usernameField.getText());
-						MainRun.myRs = MainRun.myStmt.executeQuery();
-						if (MainRun.myRs.next()) {
+						query = "SELECT professorID FROM professor WHERE professorID = ?";
+						queryParams.clear();
+						queryParams.add(usernameField.getText());
+						queryResult = SQLInstance.runQuery(query, queryParams);
+						if (queryResult.next()) {
 							accountSelection = "Professor";
 							return true;
 						}
 						break;
 					case "Student":
-						MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT studentID FROM student WHERE studentID = ?");
-						MainRun.myStmt.setString(1, usernameField.getText());
-						MainRun.myRs = MainRun.myStmt.executeQuery();
-						if (MainRun.myRs.next()) {
+						query = "SELECT studentID FROM student WHERE studentID = ?";
+						queryParams.clear();
+						queryParams.add(usernameField.getText());
+						queryResult = SQLInstance.runQuery(query, queryParams);
+						if (queryResult.next()) {
 							accountSelection = "Student";
 							return true;
 						}
 						break;
 				}
 			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		usernameField.setBorder(BorderFactory.createLineBorder(Color.RED));

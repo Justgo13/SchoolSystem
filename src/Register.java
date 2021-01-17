@@ -7,6 +7,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +46,16 @@ public class Register implements ActionListener{
 	private JButton cancelButton;
 	private JComboBox<?> accountTypeComboBox;
 	private ArrayList<String> accountTypes;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
 	
 	public Register() {
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
 		initRegister();
 	}
 
@@ -211,14 +220,18 @@ public class Register implements ActionListener{
 	 * @throws SQLException 
 	 */
 	private boolean userNameErrorCheck() {
+		SQLInstance = new SQLQuery();
+		query = "SELECT username FROM userpass WHERE username = ?";
+		queryParams.clear();
+		queryParams.add(userIDField.getText());
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT username FROM userpass WHERE username = ?");
-			MainRun.myStmt.setString(1, userIDField.getText());
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			if (MainRun.myRs.next() || userIDField.getText().isEmpty()) {
+			if (queryResult.next() || userIDField.getText().isEmpty()) {
 				userIDField.setBorder(BorderFactory.createLineBorder(Color.RED));
 				return false;
 			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -231,47 +244,43 @@ public class Register implements ActionListener{
 	 * @throws SQLException 
 	 */
 	private void storeFields(String username, String password, String firstName, String lastName) throws SQLException {
-		// creates account
-		try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO userpass VALUES (?, ?)");
-			MainRun.myStmt.setString(1, username);
-			MainRun.myStmt.setString(2, password);
-			MainRun.myStmt.executeUpdate();
-		} catch (SQLException e) {
-			
-		}
+		SQLInstance = new SQLQuery();
+		query = "INSERT INTO userpass VALUES (?, ?)";
+		queryParams.clear();
+		queryParams.add(username);
+		queryParams.add(password);
+		SQLInstance.runUpdate(query, queryParams);
 		switch ((String) accountTypeComboBox.getSelectedItem()) {
 			case "Dean":
 				// creates dean object
-				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO dean VALUES (?, ?, ?, ?)");
-				MainRun.myStmt.setString(1, username);
-				MainRun.myStmt.setString(2, firstName);
-				MainRun.myStmt.setString(3, lastName);
-				MainRun.myStmt.setInt(4, 0);
-				MainRun.myStmt.executeUpdate();
+				query = "INSERT INTO dean (deanID,firstName,lastName) VALUES (?, ?, ?)";
+				queryParams.clear();
+				queryParams.add(username);
+				queryParams.add(firstName);
+				queryParams.add(lastName);
+				SQLInstance.runUpdate(query, queryParams);
 				break;
 			case "Professor":
 				// creates professor object
-				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO professor VALUES (?, ?, ?, ?, ?)");
-				MainRun.myStmt.setString(1, username);
-				MainRun.myStmt.setString(2, firstName);
-				MainRun.myStmt.setString(3, lastName);
-				MainRun.myStmt.setInt(4, 0);
-				MainRun.myStmt.setString(5, null);
-				MainRun.myStmt.executeUpdate();
+				query = "INSERT INTO professor (profID,firstName,lastName) VALUES (?, ?, ?)";
+				queryParams.clear();
+				queryParams.add(username);
+				queryParams.add(firstName);
+				queryParams.add(lastName);
+				SQLInstance.runUpdate(query, queryParams);
 				break;
 			case "Student":
 				// creates student object
-				MainRun.myStmt = MainRun.myConn.prepareStatement("INSERT INTO student VALUES (?, ?, ?, ?, ?, ?)");
-				MainRun.myStmt.setString(1, username);
-				MainRun.myStmt.setString(2, firstName);
-				MainRun.myStmt.setString(3, lastName);
-				MainRun.myStmt.setInt(4, 0);
-				MainRun.myStmt.setString(5, "");
-				MainRun.myStmt.setString(6, "");
-				MainRun.myStmt.executeUpdate();
+				query = "INSERT INTO student (studentID,firstName,lastName) VALUES (?, ?, ?)";
+				queryParams.clear();
+				queryParams.add(username);
+				queryParams.add(firstName);
+				queryParams.add(lastName);
+				SQLInstance.runUpdate(query, queryParams);
 				break;
 		}
+		SQLInstance.getMyConn().close();
+		System.out.println("Connection terminated");
 	}
 
 	/**

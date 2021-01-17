@@ -3,7 +3,9 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -24,14 +26,20 @@ public class StudentGUI implements ActionListener {
 	private JFrame frame;
 	private Container container;
 	private JPanel studentPanel;
-    
     private String studentID;
-
+    private String query;
+    private ArrayList<String> queryParams;
+    private ResultSet queryResult;
+    private SQLQuery SQLInstance;
     /**
      * Creates student GUI
      */
     public StudentGUI (String studentID) {
     	initStudentGUI();
+        query = "";
+        queryParams = new ArrayList<>();
+        queryResult = null;
+        SQLInstance = null;
     	this.studentID = studentID;
     }
     
@@ -90,24 +98,25 @@ public class StudentGUI implements ActionListener {
         } else if (button.equals(showCourses)) {
         	String[] studentCourses = null;
         	String[] studentGrades = null;
+            SQLInstance = new SQLQuery();
+            // grabs course string
+            query = "SELECT courses FROM student WHERE studentID = ?";
+            queryParams.clear();
+            queryParams.add(studentID);
+            queryResult = SQLInstance.runQuery(query, queryParams);
         	try {
 	        	String courseInfoString = "";
-	            // grabs course string
-	 			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-	 			MainRun.myStmt.setString(1, studentID);
-	 			MainRun.myRs = MainRun.myStmt.executeQuery();
-	 			
-	 			if (MainRun.myRs.next()) {
-	 				studentCourses = MainRun.myRs.getString("courses").split(",");
+	 			if (queryResult.next()) {
+	 				studentCourses = queryResult.getString("courses").split(",");
 	 			}
 	 			
 	 			// grabs grades string
-	 			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
-	 			MainRun.myStmt.setString(1, studentID);
-	 			MainRun.myRs = MainRun.myStmt.executeQuery();
-	 			
-	 			if (MainRun.myRs.next()) {
-	 				studentGrades = MainRun.myRs.getString("grades").split(",");
+                query = "SELECT grades FROM student WHERE studentID = ?";
+                queryParams.clear();
+                queryParams.add(studentID);
+                queryResult = SQLInstance.runQuery(query, queryParams);
+	 			if (queryResult.next()) {
+	 				studentGrades = queryResult.getString("grades").split(",");
 	 			}
 	 			
 	 			for (int i = 0; i < studentCourses.length; i++) {
@@ -122,18 +131,24 @@ public class StudentGUI implements ActionListener {
 	            } else {
 	            	JOptionPane.showMessageDialog(studentPanel, courseInfoString);
 	            }
+                SQLInstance.getMyConn().close();
+                System.out.println("Connection terminated");
         	} catch (SQLException err) {
         		err.getStackTrace();
         	}
         } else if (button.equals(showFees)) {
+            SQLInstance = new SQLQuery();
+            // grabs course string
+            query = "SELECT tuitionFee FROM student WHERE studentID = ?";
+            queryParams.clear();
+            queryParams.add(studentID);
+            queryResult = SQLInstance.runQuery(query, queryParams);
         	try {
-	        	MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT tuitionFee FROM student WHERE studentID = ?");
-	        	MainRun.myStmt.setString(1, studentID);
-	        	MainRun.myRs = MainRun.myStmt.executeQuery();
-	        	
-	        	if (MainRun.myRs.next()) {
-	        		JOptionPane.showMessageDialog(studentPanel, "Your fee is $" + MainRun.myRs.getString("tuitionFee"));
+	        	if (queryResult.next()) {
+	        		JOptionPane.showMessageDialog(studentPanel, "Your fee is $" + queryResult.getString("tuitionFee"));
 	        	}
+                SQLInstance.getMyConn().close();
+                System.out.println("Connection terminated");
         	} catch (SQLException error) {
         		error.getStackTrace();
         	}

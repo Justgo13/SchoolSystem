@@ -35,8 +35,16 @@ public class UnregisterCourseGUI implements ActionListener{
 	private GridBagConstraints constraints;
 	private JComboBox<?> courseComboBox;
 	private ArrayList<String> courseNames;
+	private String query;
+	private ArrayList<String> queryParams;
+	private ResultSet queryResult;
+	private SQLQuery SQLInstance;
 	public UnregisterCourseGUI(String studentID) {
 		this.studentID = studentID;
+		query = "";
+		queryParams = new ArrayList<>();
+		queryResult = null;
+		SQLInstance = null;
 		initUnregisterCourse();
 	}
 	private void initUnregisterCourse() {
@@ -46,20 +54,24 @@ public class UnregisterCourseGUI implements ActionListener{
         unregisterPanel = new JPanel(new GridBagLayout());
         container.add(unregisterPanel);
         
-        courseNames = new ArrayList<String>();
+        courseNames = new ArrayList<>();
         courseNames.add("Choose course");
+
+		SQLInstance = new SQLQuery();
+		query = "SELECT courses FROM student WHERE studentID = ?";
+		queryParams.clear();
+		queryParams.add(studentID);
+		queryResult = SQLInstance.runQuery(query, queryParams);
         try {
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, studentID);
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+			if (queryResult.next()) {
+				String [] studentCourses = queryResult.getString("courses").split(",");
 				List<String> studentCourseList = Arrays.asList(studentCourses);
 				ArrayList<String> courses = new ArrayList<String>(studentCourseList);
 				
 				courses.forEach(course -> courseNames.add(course));
 			}
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -122,37 +134,44 @@ public class UnregisterCourseGUI implements ActionListener{
 	 * Adds course to the list of student courses
 	 */
 	private void removeCourse(String courseCode) {
-		ArrayList<String> courses = null;
-		ArrayList<String> grades = null;
+		ArrayList<String> courses = new ArrayList<>();
+		ArrayList<String> grades = new ArrayList<>();
+		SQLInstance = new SQLQuery();
+		query = "SELECT courses FROM student WHERE studentID = ?";
+		queryParams.clear();
+		queryParams.add(studentID);
+		queryResult = SQLInstance.runQuery(query, queryParams);
 		try {
-			// grabs course string
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courses FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, studentID);
-			MainRun.myRs = MainRun.myStmt.executeQuery();
-			
-			if (MainRun.myRs.next()) {
-				if (MainRun.myRs.getString("courses") == null) {
-					courses = new ArrayList<String>();
-				} else {
-					String [] studentCourses = MainRun.myRs.getString("courses").split(",");
-					List<String> studentCourseList = Arrays.asList(studentCourses);
-					courses = new ArrayList<String>(studentCourseList);
-				}
+			if (queryResult.next()) {
+				String [] studentCourses = queryResult.getString("courses").split(",");
+				List<String> studentCourseList = Arrays.asList(studentCourses);
+				courses = new ArrayList<String>(studentCourseList);
+//				if (queryResult.getString("courses") == null) {
+//					courses = new ArrayList<String>();
+//				} else {
+//					String [] studentCourses = MainRun.myRs.getString("courses").split(",");
+//					List<String> studentCourseList = Arrays.asList(studentCourses);
+//					courses = new ArrayList<String>(studentCourseList);
+//				}
 			}
 			
 			// grabs grades string
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT grades FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, studentID);
-			ResultSet gradeResultSet = MainRun.myStmt.executeQuery();
+			query = "SELECT grades FROM student WHERE studentID = ?";
+			queryParams.clear();
+			queryParams.add(studentID);
+			queryResult = SQLInstance.runQuery(query, queryParams);
 			
-			if (gradeResultSet.next()) {
-				if (gradeResultSet.getString("grades") == null) {
-					grades = new ArrayList<String>();
-				} else {
-					String [] studentGrades = gradeResultSet.getString("grades").split(",");
-					List<String> studentGradeList = Arrays.asList(studentGrades);
-					grades = new ArrayList<String>(studentGradeList);
-				}
+			if (queryResult.next()) {
+				String [] studentGrades = queryResult.getString("grades").split(",");
+				List<String> studentGradeList = Arrays.asList(studentGrades);
+				grades = new ArrayList<>(studentGradeList);
+//				if (gradeResultSet.getString("grades") == null) {
+//					grades = new ArrayList<String>();
+//				} else {
+//					String [] studentGrades = gradeResultSet.getString("grades").split(",");
+//					List<String> studentGradeList = Arrays.asList(studentGrades);
+//					grades = new ArrayList<String>(studentGradeList);
+//				}
 			}
 			int courseCodeIndex = courses.indexOf(courseCode);
 			courses.remove(courseCode);
@@ -173,22 +192,27 @@ public class UnregisterCourseGUI implements ActionListener{
 			}
 			
 			// gets current tuitionFee
-			MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT tuitionFee FROM student WHERE studentID = ?");
-			MainRun.myStmt.setString(1, studentID);
-			ResultSet tuitionFee = MainRun.myStmt.executeQuery();
+			query = "SELECT tuitionFee FROM student WHERE studentID = ?";
+			queryParams.clear();
+			queryParams.add(studentID);
+			queryResult = SQLInstance.runQuery(query, queryParams);
 			
-			if (tuitionFee.next()) {
-				MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET tuitionFee = ? WHERE studentID = ?");
-				MainRun.myStmt.setInt(1, Integer.parseInt(tuitionFee.getString("tuitionFee"))-500);
-				MainRun.myStmt.setString(2, studentID);
-				MainRun.myStmt.executeUpdate();
+			if (queryResult.next()) {
+				query = "UPDATE student SET tuitionFee = ? WHERE studentID = ?";
+				queryParams.clear();
+				queryParams.add(String.valueOf(Integer.parseInt(queryResult.getString("tuitionFee"))-500));
+				queryParams.add(studentID);
+				SQLInstance.runUpdate(query, queryParams);
 			}
-			
-			MainRun.myStmt = MainRun.myConn.prepareStatement("UPDATE student SET courses = ?, grades = ? WHERE studentID = ?");
-			MainRun.myStmt.setString(1, courseToPass);
-			MainRun.myStmt.setString(2, gradeToPass);
-			MainRun.myStmt.setString(3, studentID);
-			MainRun.myStmt.executeUpdate();
+
+			query = "UPDATE student SET courses = ?, grades = ? WHERE studentID = ?";
+			queryParams.clear();
+			queryParams.add(courseToPass);
+			queryParams.add(gradeToPass);
+			queryParams.add(studentID);
+			SQLInstance.runUpdate(query, queryParams);
+			SQLInstance.getMyConn().close();
+			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}

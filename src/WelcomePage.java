@@ -20,8 +20,8 @@ import javax.swing.WindowConstants;
  * @author Jason Gao
  *
  */
-public class WelcomePage implements ComponentListener, ActionListener{
-	private JFrame frame;
+public class WelcomePage extends JFrame implements ComponentListener, ActionListener{
+
 	private Container contentPane;
 	private JPanel buttonPanel;
 	private JButton loginButton;
@@ -32,23 +32,8 @@ public class WelcomePage implements ComponentListener, ActionListener{
 	}
 	
 	public void init() {
-		frame = new JFrame("University Application");
-		frame.addWindowListener(new WindowAdapter() {
-			@Override
-		    public void windowClosing(WindowEvent e)
-		    {
-		        super.windowClosing(e);
-		        try {
-					MainRun.myConn.close();
-					System.out.println("Server disconnected");
-			        System.exit(0);
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-		    }
-		});
-		contentPane = frame.getContentPane();
+		setTitle("University Application");
+		contentPane = getContentPane();
 		buttonPanel = new JPanel();
 		buttonPanel.setLayout(new GridLayout(0,1));
 		contentPane.add(buttonPanel);
@@ -67,13 +52,13 @@ public class WelcomePage implements ComponentListener, ActionListener{
 		buttonPanel.add(loginButton);
 		buttonPanel.add(registerButton);
 		
-		frame.setPreferredSize(new Dimension(800,600));
-		frame.addComponentListener(this);
-		frame.setResizable(false);
-		frame.pack();
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
+		setPreferredSize(new Dimension(800,600));
+		addComponentListener(this);
+		setResizable(false);
+		pack();
+		setVisible(true);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(null);
 	}
 
 	private void addActionListners() {
@@ -98,27 +83,27 @@ public class WelcomePage implements ComponentListener, ActionListener{
 
 	@Override
 	public void componentResized(ComponentEvent e) {
-		int width = frame.getWidth();
+		int width = getWidth();
         loginButton.setFont(new Font("Arial", Font.PLAIN, width / 10));
         registerButton.setFont(new Font("Arial", Font.PLAIN, width / 10));
-        frame.getContentPane().revalidate();
+        getContentPane().revalidate();
 	}
 
 	@Override
 	public void componentMoved(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void componentShown(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void componentHidden(ComponentEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

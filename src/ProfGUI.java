@@ -3,7 +3,9 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,21 +20,24 @@ public class ProfGUI implements ActionListener {
      */
     private JButton updateGrade;
     private JButton courseToTeach;
-    
 	private JFrame frame;
-
 	private Container container;
-
 	private JPanel profPanel;
-	
 	private String profID;
-
+    private String query;
+    private ArrayList<String> queryParams;
+    private ResultSet queryResult;
+    private SQLQuery SQLInstance;
     /**
      * Create a prof GUI
-     * @param professor, Student student 
+     * @param profID, professor ID
      */
     public ProfGUI(String profID){
     	this.profID = profID;
+        query = "";
+        queryParams = new ArrayList<>();
+        queryResult = null;
+        SQLInstance = null;
     	initProfGUI();
     }
     
@@ -72,19 +77,21 @@ public class ProfGUI implements ActionListener {
         JButton button = (JButton) o;
         
         if (button.equals(updateGrade)) {
+            SQLInstance = new SQLQuery();
+            query = "SELECT courseTaught FROM professor WHERE professorID = ?";
+            queryParams.clear();
+            queryParams.add(profID);
+            queryResult = SQLInstance.runQuery(query, queryParams);
         	try {
-	        	// check to see if professor has any courses
-	        	MainRun.myStmt = MainRun.myConn.prepareStatement("SELECT courseTaught FROM professor WHERE professorID = ?");
-	        	MainRun.myStmt.setString(1, profID);
-	        	MainRun.myRs = MainRun.myStmt.executeQuery();
-	        	
-	        	if (MainRun.myRs.next()) {
-	        		if (MainRun.myRs.getString("courseTaught") == null) {
+	        	if (queryResult.next()) {
+	        		if (queryResult.getString("courseTaught") == null) {
 	        			JOptionPane.showMessageDialog(container, "Please choose a course to teach");
 	        		} else {
 	        			new UpdateGradeGUI(profID);
 	        		}
-	        	} 
+	        	}
+                SQLInstance.getMyConn().close();
+                System.out.println("Connection terminated");
         	} catch (SQLException e1) {
         		e1.getStackTrace();
         	}
