@@ -223,7 +223,8 @@ public class Login extends JFrame implements ActionListener {
 				new DeanGUI();
 			break;
 			case "Professor":
-				new ProfGUI(usernameField.getText());
+				new ProfFrame(usernameField.getText());
+				//new ProfGUI(usernameField.getText());
 			break;
 			case "Student":
 				new StudentGUI(usernameField.getText());

@@ -178,7 +178,7 @@ public class RegisterCourseGUI implements ActionListener{
 			if (queryResult.next()) {
 				String[] studentGrades = queryResult.getString("grades").split(",");
 				List<String> studentGradeList = Arrays.asList(studentGrades);
-				grades = new ArrayList<String>(studentGradeList);
+				grades = new ArrayList<>(studentGradeList);
 //				if (queryResult.getString("grades") == null) {
 //					grades = new ArrayList<String>();
 //				} else {
