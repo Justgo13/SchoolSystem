@@ -36,7 +36,7 @@ public class ProfFrame extends JFrame implements ProfView {
     private JButton editButton;
     private JButton addCourseToTeach;
     private JButton removeCourseToTeach;
-    private DefaultListModel courseModel;
+    private DefaultListModel<String> courseModel;
     private String query;
     private ArrayList<String> queryParams;
     private ResultSet queryResult;
@@ -86,7 +86,7 @@ public class ProfFrame extends JFrame implements ProfView {
         tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField,ProfFrameConstants.TUITION_FEE_FIELD_LABEL.toString(), c );
 
         // student course list panel setup
-        courseModel = new DefaultListModel();
+        courseModel = new DefaultListModel<>();
         courseList = new JList(courseModel);
         courseScroll = new JScrollPane(courseList);
         courseList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
@@ -298,7 +298,8 @@ public class ProfFrame extends JFrame implements ProfView {
             }
             SQLInstance.closeSQLConnection();
             courseModel.clear();
-            courseModel.addAll(0, courses);
+            courses.forEach(course -> courseModel.addElement(course));
+            //courseModel.addAll(0, courses);
         } catch (SQLException e) {
             e.getStackTrace();
         }

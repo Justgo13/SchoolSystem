@@ -1,3 +1,7 @@
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
+import org.bson.types.ObjectId;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -46,16 +50,10 @@ public class Register implements ActionListener{
 	private JButton cancelButton;
 	private JComboBox<?> accountTypeComboBox;
 	private ArrayList<String> accountTypes;
-	private String query;
-	private ArrayList<String> queryParams;
-	private ResultSet queryResult;
-	private SQLQuery SQLInstance;
+	private MongoQuery mongoQuery;
 	
 	public Register() {
-		query = "";
-		queryParams = new ArrayList<>();
-		queryResult = null;
-		SQLInstance = null;
+		mongoQuery = new MongoQuery();
 		initRegister();
 	}
 
@@ -168,19 +166,14 @@ public class Register implements ActionListener{
 			// register success when no fields missing, password match, username not in database, and account type valid
 			if (checkIfFieldFilled() 
 					&& passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText())
-					&& userNameErrorCheck()
+					&& userNameNotExist()
 					&& accountTypeErrorCheck()) {
-				try {
-					storeFields(userIDField.getText(), passwordField.getText(), firstNameField.getText(), lastNameField.getText());
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				storeFields(userIDField.getText(), passwordField.getText(), firstNameField.getText(), lastNameField.getText());
 				frame.dispose();
 			} else {
 				String errorList = "Fields filled: " + checkIfFieldFilled() + "\n" + 
 								   "Password match: " + passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText()) + "\n" +
-								   "Username unique: " + userNameErrorCheck() + "\n" +
+								   "Username unique: " + userNameNotExist() + "\n" +
 								   "Account type valid: " + accountTypeErrorCheck();
 				JOptionPane.showMessageDialog(panel, errorList);
 			}
@@ -219,66 +212,48 @@ public class Register implements ActionListener{
 	 * Checks if username already exists in database
 	 * @throws SQLException 
 	 */
-	private boolean userNameErrorCheck() {
-		SQLInstance = new SQLQuery();
-		query = "SELECT username FROM userpass WHERE username = ?";
-		queryParams.clear();
-		queryParams.add(userIDField.getText());
-		queryResult = SQLInstance.runQuery(query, queryParams);
-		try {
-			if (queryResult.next() || userIDField.getText().isEmpty()) {
-				userIDField.setBorder(BorderFactory.createLineBorder(Color.RED));
-				return false;
-			}
-			SQLInstance.closeSQLConnection();
-		} catch (SQLException e) {
-			e.printStackTrace();
+	private boolean userNameNotExist() {
+		MongoCollection<Document> userpassCollection = mongoQuery.getCollection("Userpass");
+		if (userpassCollection.countDocuments(new Document("username", userIDField.getText())) > 0) {
+			return false;
 		}
 		return true;
-		
 	}
 
 	/**
 	 * Stores inputted fields into SQL database
 	 * @throws SQLException 
 	 */
-	private void storeFields(String username, String password, String firstName, String lastName) throws SQLException {
-		SQLInstance = new SQLQuery();
-		query = "INSERT INTO userpass VALUES (?, ?)";
-		queryParams.clear();
-		queryParams.add(username);
-		queryParams.add(password);
-		SQLInstance.runUpdate(query, queryParams);
+	private void storeFields(String username, String password, String firstName, String lastName) {
+		MongoCollection<Document> userPassCollection = mongoQuery.getCollection("Userpass");
+		Document userPassPair = new Document("_id", new ObjectId());
+		userPassPair.append("username", username);
+		userPassPair.append("password", password);
+		userPassCollection.insertOne(userPassPair);
+
 		switch ((String) accountTypeComboBox.getSelectedItem()) {
 			case "Dean":
-				// creates dean object
-				query = "INSERT INTO dean (deanID,firstName,lastName) VALUES (?, ?, ?)";
-				queryParams.clear();
-				queryParams.add(username);
-				queryParams.add(firstName);
-				queryParams.add(lastName);
-				SQLInstance.runUpdate(query, queryParams);
+				MongoCollection<Document> deanCollection = mongoQuery.getCollection("Dean");
+				createUserDocument(username, firstName, lastName, deanCollection);
 				break;
 			case "Professor":
-				// creates professor object
-				query = "INSERT INTO professor (profID,firstName,lastName) VALUES (?, ?, ?)";
-				queryParams.clear();
-				queryParams.add(username);
-				queryParams.add(firstName);
-				queryParams.add(lastName);
-				SQLInstance.runUpdate(query, queryParams);
+				MongoCollection<Document> professorCollection = mongoQuery.getCollection("Professor");
+				createUserDocument(username, firstName, lastName, professorCollection);
 				break;
 			case "Student":
-				// creates student object
-				query = "INSERT INTO student (studentID,firstName,lastName) VALUES (?, ?, ?)";
-				queryParams.clear();
-				queryParams.add(username);
-				queryParams.add(firstName);
-				queryParams.add(lastName);
-				SQLInstance.runUpdate(query, queryParams);
+				MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
+				createUserDocument(username, firstName, lastName, studentCollection);
 				break;
 		}
-		SQLInstance.closeSQLConnection();
+		mongoQuery.closeConnection();
+	}
+
+	private void createUserDocument(String username, String firstName, String lastName, MongoCollection<Document> userCollection) {
+		Document userDocument = new Document("_id", new ObjectId());
+		userDocument.append("username", username);
+		userDocument.append("first name", firstName);
+		userDocument.append("last name", lastName);
+		userCollection.insertOne(userDocument);
 	}
 
 	/**

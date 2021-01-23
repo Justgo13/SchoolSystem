@@ -58,8 +58,8 @@ public class Login extends JFrame implements ActionListener {
         contentPane.add(loginPanel);
         
         // create JComboBox
- 		accountTypes = new ArrayList<String> (List.of("Choose account type", "Dean", "Professor", "Student"));
- 		accountTypeComboBox = new JComboBox<Object>(accountTypes.toArray());
+ 		accountTypes = new ArrayList<> (List.of("Choose account type", "Dean", "Professor", "Student"));
+ 		accountTypeComboBox = new JComboBox<>(accountTypes.toArray());
  		
         // initialize login fields
         usernameField = new JTextField();
