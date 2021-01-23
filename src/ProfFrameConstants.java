@@ -4,7 +4,8 @@ public enum ProfFrameConstants {
     LAST_NAME_FIELD_LABEL("Last Name"), TUITION_FEE_FIELD_LABEL("Tuition Fee"),
     COURSES_BORDER_LABEL("Courses"), EDIT_BUTTON_LABEL("Edit Student Grade"), ADD_COURSE_LABEL("Add Course"),
     REMOVE_COURSE_LABEL("Remove Course"), COURSE_LIST_NAME("Student Course List"), STUDENT_LIST_NAME("Student List"),
-    EDIT_BUTTON_COMMAND("Edit"), COURSE_TAUGHT_LIST_NAME("Professor Taught List");
+    EDIT_BUTTON_COMMAND("Edit"), COURSE_TAUGHT_LIST_NAME("Professor Taught List"),
+    ADD_COURSE_BUTTON_COMMAND("Add course"), REMOVE_COURSE_BUTTON_COMMAND("Remove Course");
     private String value;
     ProfFrameConstants(String value) {
         this.value = value;

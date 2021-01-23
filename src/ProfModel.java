@@ -48,4 +48,22 @@ public class ProfModel {
             pv.handleEnableEditCourse();
         }
     }
+
+    public void addCourseTaught() {
+        for (ProfView pv : profViews) {
+            pv.handleAddCourseTaught();
+        }
+    }
+
+    public void removeCourseTaught() {
+        for (ProfView pv : profViews) {
+            pv.handleRemoveCourseTaught();
+        }
+    }
+
+    public void enableRemoveCourseTaught() {
+        for (ProfView pv : profViews) {
+            pv.handleEnableRemoveCourseTaught();
+        }
+    }
 }

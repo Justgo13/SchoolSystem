@@ -43,6 +43,7 @@ public class ProfFrame extends JFrame implements ProfView {
     private SQLQuery SQLInstance;
     private String profID;
     private ProfModel profModel;
+    private DefaultListModel courseTaughtListModel;
 
     public ProfFrame(String profID) {
         profModel = new ProfModel();
@@ -56,6 +57,9 @@ public class ProfFrame extends JFrame implements ProfView {
     public void initProfessorGUI() {
         ProfController profController = new ProfController(profModel);
         profModel.addProfView(this);
+
+        courseTaughtListModel = new DefaultListModel();
+        courseTaughtList = new JList(courseTaughtListModel);
 
         // creating main panels
         contentPane = getContentPane();
@@ -115,6 +119,7 @@ public class ProfFrame extends JFrame implements ProfView {
         // prof commands panel
         addCourseToTeach = new JButton(ProfFrameConstants.ADD_COURSE_LABEL.toString());
         removeCourseToTeach = new JButton(ProfFrameConstants.REMOVE_COURSE_LABEL.toString());
+        removeCourseToTeach.setEnabled(false);
         profCommandsPanel = createCourseTaughtPanel();
 
         c.gridx = 0;
@@ -191,7 +196,7 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private void populateCourseTaught() {
-        ArrayList<String> courseTaughtData;
+        courseTaughtListModel.clear();
         query = "SELECT courseTaught FROM professor WHERE professorID = ?";
         queryParams.clear();
         queryParams.add(profID);
@@ -199,14 +204,13 @@ public class ProfFrame extends JFrame implements ProfView {
         try {
             if (queryResult.next()) {
                 String[] courseTaught = queryResult.getString("courseTaught").split(",");
-                List<String> courseList = Arrays.asList(courseTaught);
-                courseTaughtData = new ArrayList<>(courseList);
-                profModel.setCourseTaughtData(courseTaughtData);
-                courseTaughtList = new JList(profModel.getCourseTaughtData().toArray());
+                ArrayList<String> courseList = new ArrayList<>(Arrays.asList(courseTaught));
+                profModel.setCourseTaughtData(courseList);
+                for (String courseTaughtValue : profModel.getCourseTaughtData()) {
+                    courseTaughtListModel.addElement(courseTaughtValue);
+                }
                 courseTaughtList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             }
-            SQLInstance.getMyConn().close();
-            System.out.println("Connection terminated");
         } catch (SQLException e) {
             e.getStackTrace();
         }
@@ -224,8 +228,6 @@ public class ProfFrame extends JFrame implements ProfView {
                 studentList = new JList(profModel.getStudentListData().toArray());
                 studentList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
             }
-            SQLInstance.getMyConn().close();
-            System.out.println("Connection terminated");
         } catch (SQLException e) {
             e.getStackTrace();
         }
@@ -240,6 +242,10 @@ public class ProfFrame extends JFrame implements ProfView {
         editButton.setActionCommand(ProfFrameConstants.EDIT_BUTTON_COMMAND.toString());
         courseTaughtList.addListSelectionListener(profController);
         courseTaughtList.setName(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString());
+        addCourseToTeach.addActionListener(profController);
+        addCourseToTeach.setActionCommand(ProfFrameConstants.ADD_COURSE_BUTTON_COMMAND.toString());
+        removeCourseToTeach.addActionListener(profController);
+        removeCourseToTeach.setActionCommand(ProfFrameConstants.REMOVE_COURSE_BUTTON_COMMAND.toString());
     }
 
     /**
@@ -251,7 +257,7 @@ public class ProfFrame extends JFrame implements ProfView {
         String ID = (String) studentID;
         ArrayList<String> courses = new ArrayList<>();
         ArrayList<String> grades = new ArrayList<>();
-        SQLInstance = new SQLQuery();
+        SQLInstance.openSQLConnection();
         query = "SELECT * FROM student WHERE studentID = ?";
         queryParams.clear();
         queryParams.add(ID);
@@ -290,8 +296,7 @@ public class ProfFrame extends JFrame implements ProfView {
             for (String course : courses) {
                 courses.set(courses.indexOf(course), course + " - " + grades.get(courses.indexOf(course)));
             }
-            SQLInstance.getMyConn().close();
-            System.out.println("Connection terminated");
+            SQLInstance.closeSQLConnection();
             courseModel.clear();
             courseModel.addAll(0, courses);
         } catch (SQLException e) {
@@ -379,5 +384,68 @@ public class ProfFrame extends JFrame implements ProfView {
     @Override
     public void handleEnableEditCourse() {
         editButton.setEnabled(true);
+    }
+
+    @Override
+    public void handleAddCourseTaught() {
+        String courseTaught = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", + JOptionPane.OK_OPTION);
+        SQLInstance.openSQLConnection();
+        query = "SELECT * FROM professor WHERE professorID = ?";
+        queryParams.clear();
+        queryParams.add(profID);
+        queryResult = SQLInstance.runQuery(query, queryParams);
+        try {
+            if (queryResult.next()) {
+                String courseTaughtOld = queryResult.getString("courseTaught");
+                String[] courseTaughtOldList = courseTaughtOld.split(",");
+                ArrayList<String> courseTaughtNewList = new ArrayList<>(Arrays.asList(courseTaughtOldList));
+                courseTaughtNewList.add(courseTaught);
+                String courseTaughtNew = String.join(",", courseTaughtNewList);
+                query = "UPDATE professor SET courseTaught = ? WHERE professorID = ?";
+                queryParams.clear();
+                queryParams.add(courseTaughtNew);
+                queryParams.add(profID);
+                SQLInstance.runUpdate(query, queryParams);
+
+                populateCourseTaught();
+            }
+            SQLInstance.closeSQLConnection();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    @Override
+    public void handleRemoveCourseTaught() {
+        String currentCourseSelected = (String) courseTaughtList.getSelectedValue();
+        SQLInstance.openSQLConnection();
+        query = "SELECT * FROM professor WHERE professorID = ?";
+        queryParams.clear();
+        queryParams.add(profID);
+        queryResult = SQLInstance.runQuery(query, queryParams);
+        try {
+            if (queryResult.next()) {
+                String courseTaughtOld = queryResult.getString("courseTaught");
+                String[] courseTaughtOldList = courseTaughtOld.split(",");
+                ArrayList<String> courseTaughtNewList = new ArrayList<>(Arrays.asList(courseTaughtOldList));
+                courseTaughtNewList.remove(currentCourseSelected);
+                String courseTaughtNew = String.join(",", courseTaughtNewList);
+                query = "UPDATE professor SET courseTaught = ? WHERE professorID = ?";
+                queryParams.clear();
+                queryParams.add(courseTaughtNew);
+                queryParams.add(profID);
+                SQLInstance.runUpdate(query, queryParams);
+
+                populateCourseTaught();
+                removeCourseToTeach.setEnabled(false);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void handleEnableRemoveCourseTaught() {
+        removeCourseToTeach.setEnabled(true);
     }
 }
