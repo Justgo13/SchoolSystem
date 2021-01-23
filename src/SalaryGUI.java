@@ -75,8 +75,7 @@ public class SalaryGUI implements ActionListener{
 					professorIDs.add(queryResult.getString("professorID"));
 				} while (queryResult.next());
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -172,12 +171,7 @@ public class SalaryGUI implements ActionListener{
 		queryParams.add((String) professorComboBox.getSelectedItem());
 		SQLInstance.runUpdate(query, queryParams);
 
-		try {
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		SQLInstance.closeSQLConnection();
 	}
 
 	/**

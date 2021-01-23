@@ -131,8 +131,7 @@ public class StudentGUI implements ActionListener {
 	            } else {
 	            	JOptionPane.showMessageDialog(studentPanel, courseInfoString);
 	            }
-                SQLInstance.getMyConn().close();
-                System.out.println("Connection terminated");
+                SQLInstance.closeSQLConnection();
         	} catch (SQLException err) {
         		err.getStackTrace();
         	}
@@ -147,8 +146,7 @@ public class StudentGUI implements ActionListener {
 	        	if (queryResult.next()) {
 	        		JOptionPane.showMessageDialog(studentPanel, "Your fee is $" + queryResult.getString("tuitionFee"));
 	        	}
-                SQLInstance.getMyConn().close();
-                System.out.println("Connection terminated");
+                SQLInstance.closeSQLConnection();
         	} catch (SQLException error) {
         		error.getStackTrace();
         	}

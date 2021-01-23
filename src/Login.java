@@ -204,7 +204,7 @@ public class Login extends JFrame implements ActionListener {
 						break;
 				}
 			}
-			SQLInstance.getMyConn().close();
+			SQLInstance.closeSQLConnection();
 			System.out.println("Connection terminated");
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -223,8 +223,8 @@ public class Login extends JFrame implements ActionListener {
 				new DeanGUI();
 			break;
 			case "Professor":
+				System.out.println("Logged in as professor" );
 				new ProfFrame(usernameField.getText());
-				//new ProfGUI(usernameField.getText());
 			break;
 			case "Student":
 				new StudentGUI(usernameField.getText());

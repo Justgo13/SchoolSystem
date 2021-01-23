@@ -138,8 +138,7 @@ public class RegisterCourseGUI implements ActionListener{
 					return false;
 				}
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -224,8 +223,7 @@ public class RegisterCourseGUI implements ActionListener{
 			queryParams.add(gradeToPass);
 			queryParams.add(studentID);
 			SQLInstance.runUpdate(query, queryParams);
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}

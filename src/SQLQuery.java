@@ -45,7 +45,21 @@ public class SQLQuery {
         }
     }
 
-    public Connection getMyConn() {
-        return myConn;
+    public void closeSQLConnection() {
+        try {
+            myConn.close();
+            System.out.println("Connection terminated");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+    }
+
+    public void openSQLConnection() {
+        try {
+            myConn = DriverManager.getConnection(CONNECTION_URL,USERNAME,PASSWORD);
+            System.out.println("Connection established");
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 }

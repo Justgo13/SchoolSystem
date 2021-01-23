@@ -70,8 +70,7 @@ public class UnregisterCourseGUI implements ActionListener{
 				
 				courses.forEach(course -> courseNames.add(course));
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -211,8 +210,7 @@ public class UnregisterCourseGUI implements ActionListener{
 			queryParams.add(gradeToPass);
 			queryParams.add(studentID);
 			SQLInstance.runUpdate(query, queryParams);
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}

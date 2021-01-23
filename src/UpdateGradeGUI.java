@@ -149,8 +149,7 @@ public class UpdateGradeGUI implements ActionListener {
 					}
 				}
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -169,8 +168,7 @@ public class UpdateGradeGUI implements ActionListener {
 				ArrayList<String> courses = new ArrayList<String>(professorCourseList);
 				courses.forEach(c -> courseCode.add(c));
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e){
 			e.getStackTrace();
 		}
@@ -218,8 +216,7 @@ public class UpdateGradeGUI implements ActionListener {
 					}
 				}
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}
@@ -312,8 +309,7 @@ public class UpdateGradeGUI implements ActionListener {
 			queryParams.add(gradeToPass);
 			queryParams.add((String) studentComboBox.getSelectedItem());
 			SQLInstance.runUpdate(query, queryParams);
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.getStackTrace();
 		}

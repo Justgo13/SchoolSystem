@@ -230,8 +230,7 @@ public class Register implements ActionListener{
 				userIDField.setBorder(BorderFactory.createLineBorder(Color.RED));
 				return false;
 			}
-			SQLInstance.getMyConn().close();
-			System.out.println("Connection terminated");
+			SQLInstance.closeSQLConnection();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -279,8 +278,7 @@ public class Register implements ActionListener{
 				SQLInstance.runUpdate(query, queryParams);
 				break;
 		}
-		SQLInstance.getMyConn().close();
-		System.out.println("Connection terminated");
+		SQLInstance.closeSQLConnection();
 	}
 
 	/**
