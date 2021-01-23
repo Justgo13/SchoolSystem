@@ -11,10 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -31,10 +28,9 @@ import javax.swing.WindowConstants;
  * @author jgao2
  *
  */
-public class Register implements ActionListener{
-	private JFrame frame;
+public class RegisterGUI extends JFrame implements ActionListener{
 	private Container contentPane;
-	private JPanel panel;
+	private JPanel welcomePanel;
 	private JLabel firstName;
 	private JLabel lastName;
 	private JLabel userID;
@@ -48,32 +44,37 @@ public class Register implements ActionListener{
 	private GridBagConstraints constraints;
 	private JButton registerButton;
 	private JButton cancelButton;
-	private JComboBox<?> accountTypeComboBox;
-	private ArrayList<String> accountTypes;
+	private JComboBox<String> accountTypeComboBox;
+	private String[] accountTypes;
 	private MongoQuery mongoQuery;
 	
-	public Register() {
+	public RegisterGUI() {
+		super("Register");
 		mongoQuery = new MongoQuery();
 		initRegister();
 	}
 
 	public void initRegister() {
-		frame = new JFrame("Register");
-		contentPane = frame.getContentPane();
-		panel = new JPanel();
-		contentPane.add(panel);
-		panel.setLayout(new GridBagLayout());
+		contentPane = getContentPane();
+		welcomePanel = new JPanel();
+		contentPane.add(welcomePanel);
+		welcomePanel.setLayout(new GridBagLayout());
 		
 		// create JComboBox
-		accountTypes = new ArrayList<String> (List.of("Choose account type", "Dean", "Professor", "Student"));
-		accountTypeComboBox = new JComboBox<Object>(accountTypes.toArray());
+		accountTypes = new String[] {
+				RegisterGUIConstants.DEFAULT_ACCOUNT_TYPE.toString(),
+				RegisterGUIConstants.DEAN_ACCOUNT_TYPE.toString(),
+				RegisterGUIConstants.PROFESSOR_ACCOUNT_TYPE.toString(),
+				RegisterGUIConstants.STUDENT_ACCOUNT_TYPE.toString()
+		};
+		accountTypeComboBox = new JComboBox<>(accountTypes);
 				
 		// creates JLabels
-		firstName = new JLabel("First Name");
-		lastName = new JLabel("Last Name");
-		userID = new JLabel("User ID");
-		password = new JLabel("Password");
-		confirmPassword = new JLabel ("Confirm Password");
+		firstName = new JLabel(RegisterGUIConstants.FN_LABEL.toString());
+		lastName = new JLabel(RegisterGUIConstants.LN_LABEL.toString());
+		userID = new JLabel(RegisterGUIConstants.USERNAME_LABEL.toString());
+		password = new JLabel(RegisterGUIConstants.PASSWORD_LABEL.toString());
+		confirmPassword = new JLabel (RegisterGUIConstants.CONF_PASSWORD_LABEL.toString());
 		
 		// creating JTextFields
 		firstNameField = new JTextField();
@@ -83,11 +84,10 @@ public class Register implements ActionListener{
 		confirmPasswordField = new JTextField();
 		
 		// register and cancel button
-		registerButton = new JButton("Register");
-		cancelButton = new JButton("Cancel");
-		registerButton.addActionListener(this);
-		cancelButton.addActionListener(this);
-		
+		registerButton = new JButton(RegisterGUIConstants.REGISTER_BTN_LABEL.toString());
+		cancelButton = new JButton(RegisterGUIConstants.CANCEL_BTN_LABEL.toString());
+		setupButtons();
+
 		constraints = new GridBagConstraints();
 		constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 0.0;
@@ -97,88 +97,93 @@ public class Register implements ActionListener{
 		constraints.anchor = GridBagConstraints.EAST;
 		constraints.insets = new Insets(0,5,0,5);
 		
-		panel.add(firstName, constraints);
+		welcomePanel.add(firstName, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 1;
-		panel.add(lastName, constraints);
+		welcomePanel.add(lastName, constraints);
 				
 		constraints.gridx = 0;
 		constraints.gridy = 2;
-		panel.add(userID, constraints);
+		welcomePanel.add(userID, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 3;
-		panel.add(password, constraints);
+		welcomePanel.add(password, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 4;
-		panel.add(confirmPassword, constraints);
+		welcomePanel.add(confirmPassword, constraints);
 		
 		constraints.anchor = GridBagConstraints.WEST;
 		constraints.weightx = 1.0;
 		constraints.gridx = 1;
 		constraints.gridy = 0;
-		panel.add(firstNameField, constraints);
+		welcomePanel.add(firstNameField, constraints);
 		
 		constraints.gridx = 1;
 		constraints.gridy = 1;
-		panel.add(lastNameField, constraints);
+		welcomePanel.add(lastNameField, constraints);
 		
 		constraints.gridx = 1;
 		constraints.gridy = 2;
-		panel.add(userIDField, constraints);
+		welcomePanel.add(userIDField, constraints);
 		
 		constraints.gridx = 1;
 		constraints.gridy = 3;
-		panel.add(passwordField, constraints);
+		welcomePanel.add(passwordField, constraints);
 		
 		constraints.gridx = 1;
 		constraints.gridy = 4;
-		panel.add(confirmPasswordField, constraints);
+		welcomePanel.add(confirmPasswordField, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 5;
 		constraints.gridwidth = 2;
-		panel.add(accountTypeComboBox, constraints);
+		welcomePanel.add(accountTypeComboBox, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 6;
-		panel.add(registerButton, constraints);
+		welcomePanel.add(registerButton, constraints);
 		
 		constraints.gridx = 0;
 		constraints.gridy = 7;
-		panel.add(cancelButton, constraints);
+		welcomePanel.add(cancelButton, constraints);
 		
-		frame.setPreferredSize(new Dimension(800,600));
-		frame.pack();
-		frame.setResizable(false);
-		frame.setVisible(true);
-		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-		frame.setLocationRelativeTo(null);
+		setPreferredSize(new Dimension(800,600));
+		pack();
+		setResizable(false);
+		setVisible(true);
+		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+		setLocationRelativeTo(null);
+	}
+
+	private void setupButtons() {
+		registerButton.addActionListener(this);
+		registerButton.setActionCommand(RegisterGUIConstants.REGISTER_BTN_CMD.toString());
+		cancelButton.addActionListener(this);
+		cancelButton.setActionCommand(RegisterGUIConstants.CANCEL_BTN_CMD.toString());
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Object o = e.getSource();
-		JButton button = (JButton) o;
-		if (button.equals(registerButton)) {
+		if (RegisterGUIConstants.REGISTER_BTN_CMD.equals(e.getActionCommand())) {
 			// register success when no fields missing, password match, username not in database, and account type valid
 			if (checkIfFieldFilled() 
 					&& passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText())
 					&& userNameNotExist()
 					&& accountTypeErrorCheck()) {
 				storeFields(userIDField.getText(), passwordField.getText(), firstNameField.getText(), lastNameField.getText());
-				frame.dispose();
+				dispose();
 			} else {
 				String errorList = "Fields filled: " + checkIfFieldFilled() + "\n" + 
 								   "Password match: " + passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText()) + "\n" +
 								   "Username unique: " + userNameNotExist() + "\n" +
 								   "Account type valid: " + accountTypeErrorCheck();
-				JOptionPane.showMessageDialog(panel, errorList);
+				JOptionPane.showMessageDialog(welcomePanel, errorList);
 			}
-		} else if (button.equals(cancelButton)) {
-			frame.dispose();
+		} else if (RegisterGUIConstants.CANCEL_BTN_CMD.equals(e.getActionCommand())) {
+			dispose();
 		}
 	}
 
@@ -262,7 +267,7 @@ public class Register implements ActionListener{
 	 */
 	private boolean checkIfFieldFilled() {
 		boolean filled = true;
-		for (Component component : panel.getComponents()) {
+		for (Component component : welcomePanel.getComponents()) {
 			if (component instanceof JTextField) {
 				JTextField textField = (JTextField) component;
 				if (textField.getText().isEmpty()) {
