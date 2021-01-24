@@ -1,7 +1,5 @@
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.Block;
+import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -26,5 +24,41 @@ public class MongoQuery {
 
     public void closeConnection() {
         mongoClient.close();
+    }
+
+    public ArrayList<Document> getAllDocuments() {
+        ArrayList<Document> allDocuments = new ArrayList<>();
+        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+        for (String collectionName : collectionNames) {
+            MongoCollection collection = mongoDatabase.getCollection(collectionName);
+            collection.find().forEach((Block<Document>) document -> allDocuments.add(document));
+        }
+        return allDocuments;
+    }
+
+    public ArrayList<Document> getUserAccountDocuments() {
+        ArrayList<Document> userAccountDocuments = new ArrayList<>();
+        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+        for (String collectionName : collectionNames) {
+            if (collectionName.equals("Userpass")) {
+                continue;
+            }
+            MongoCollection collection = mongoDatabase.getCollection(collectionName);
+            collection.find().forEach((Block<Document>) document -> userAccountDocuments.add(document));
+        }
+        return userAccountDocuments;
+    }
+
+    public String getDocumentCollectionName(Document document) {
+        String collectionName = "";
+        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+        for (String collectName : collectionNames) {
+            MongoCollection collection = mongoDatabase.getCollection(collectName);
+            FindIterable<Document> iterable = collection.find(document);
+            if (iterable.first() != null) {
+                collectionName = collectName;
+            }
+        }
+        return collectionName;
     }
 }

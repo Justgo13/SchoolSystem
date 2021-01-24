@@ -62,19 +62,19 @@ public class RegisterGUI extends JFrame implements ActionListener{
 		
 		// create JComboBox
 		accountTypes = new String[] {
-				RegisterGUIConstants.DEFAULT_ACCOUNT_TYPE.toString(),
-				RegisterGUIConstants.DEAN_ACCOUNT_TYPE.toString(),
-				RegisterGUIConstants.PROFESSOR_ACCOUNT_TYPE.toString(),
-				RegisterGUIConstants.STUDENT_ACCOUNT_TYPE.toString()
+				SignInConstants.DEFAULT_ACCOUNT_TYPE.toString(),
+				SignInConstants.DEAN_ACCOUNT_TYPE.toString(),
+				SignInConstants.PROFESSOR_ACCOUNT_TYPE.toString(),
+				SignInConstants.STUDENT_ACCOUNT_TYPE.toString()
 		};
 		accountTypeComboBox = new JComboBox<>(accountTypes);
 				
 		// creates JLabels
-		firstName = new JLabel(RegisterGUIConstants.FN_LABEL.toString());
-		lastName = new JLabel(RegisterGUIConstants.LN_LABEL.toString());
-		userID = new JLabel(RegisterGUIConstants.USERNAME_LABEL.toString());
-		password = new JLabel(RegisterGUIConstants.PASSWORD_LABEL.toString());
-		confirmPassword = new JLabel (RegisterGUIConstants.CONF_PASSWORD_LABEL.toString());
+		firstName = new JLabel(SignInConstants.FN_LABEL.toString());
+		lastName = new JLabel(SignInConstants.LN_LABEL.toString());
+		userID = new JLabel(SignInConstants.USERNAME_LABEL.toString());
+		password = new JLabel(SignInConstants.PASSWORD_LABEL.toString());
+		confirmPassword = new JLabel (SignInConstants.CONF_PASSWORD_LABEL.toString());
 		
 		// creating JTextFields
 		firstNameField = new JTextField();
@@ -84,8 +84,8 @@ public class RegisterGUI extends JFrame implements ActionListener{
 		confirmPasswordField = new JTextField();
 		
 		// register and cancel button
-		registerButton = new JButton(RegisterGUIConstants.REGISTER_BTN_LABEL.toString());
-		cancelButton = new JButton(RegisterGUIConstants.CANCEL_BTN_LABEL.toString());
+		registerButton = new JButton(SignInConstants.REGISTER_BTN_LABEL.toString());
+		cancelButton = new JButton(SignInConstants.CANCEL_BTN_LABEL.toString());
 		setupButtons();
 
 		constraints = new GridBagConstraints();
@@ -160,14 +160,14 @@ public class RegisterGUI extends JFrame implements ActionListener{
 
 	private void setupButtons() {
 		registerButton.addActionListener(this);
-		registerButton.setActionCommand(RegisterGUIConstants.REGISTER_BTN_CMD.toString());
+		registerButton.setActionCommand(SignInConstants.REGISTER_BTN_CMD.toString());
 		cancelButton.addActionListener(this);
-		cancelButton.setActionCommand(RegisterGUIConstants.CANCEL_BTN_CMD.toString());
+		cancelButton.setActionCommand(SignInConstants.CANCEL_BTN_CMD.toString());
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (RegisterGUIConstants.REGISTER_BTN_CMD.equals(e.getActionCommand())) {
+		if (SignInConstants.REGISTER_BTN_CMD.toString().equals(e.getActionCommand())) {
 			// register success when no fields missing, password match, username not in database, and account type valid
 			if (checkIfFieldFilled() 
 					&& passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText())
@@ -182,7 +182,7 @@ public class RegisterGUI extends JFrame implements ActionListener{
 								   "Account type valid: " + accountTypeErrorCheck();
 				JOptionPane.showMessageDialog(welcomePanel, errorList);
 			}
-		} else if (RegisterGUIConstants.CANCEL_BTN_CMD.equals(e.getActionCommand())) {
+		} else if (SignInConstants.CANCEL_BTN_CMD.toString().equals(e.getActionCommand())) {
 			dispose();
 		}
 	}
@@ -231,7 +231,8 @@ public class RegisterGUI extends JFrame implements ActionListener{
 	 */
 	private void storeFields(String username, String password, String firstName, String lastName) {
 		MongoCollection<Document> userPassCollection = mongoQuery.getCollection("Userpass");
-		Document userPassPair = new Document("_id", new ObjectId());
+		ObjectId uniqueUserID = new ObjectId();
+		Document userPassPair = new Document("_id", uniqueUserID);
 		userPassPair.append("username", username);
 		userPassPair.append("password", password);
 		userPassCollection.insertOne(userPassPair);
@@ -239,22 +240,22 @@ public class RegisterGUI extends JFrame implements ActionListener{
 		switch ((String) accountTypeComboBox.getSelectedItem()) {
 			case "Dean":
 				MongoCollection<Document> deanCollection = mongoQuery.getCollection("Dean");
-				createUserDocument(username, firstName, lastName, deanCollection);
+				createUserDocument(uniqueUserID, username, firstName, lastName, deanCollection);
 				break;
 			case "Professor":
 				MongoCollection<Document> professorCollection = mongoQuery.getCollection("Professor");
-				createUserDocument(username, firstName, lastName, professorCollection);
+				createUserDocument(uniqueUserID, username, firstName, lastName, professorCollection);
 				break;
 			case "Student":
 				MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
-				createUserDocument(username, firstName, lastName, studentCollection);
+				createUserDocument(uniqueUserID, username, firstName, lastName, studentCollection);
 				break;
 		}
 		mongoQuery.closeConnection();
 	}
 
-	private void createUserDocument(String username, String firstName, String lastName, MongoCollection<Document> userCollection) {
-		Document userDocument = new Document("_id", new ObjectId());
+	private void createUserDocument(ObjectId uniqueUserId, String username, String firstName, String lastName, MongoCollection<Document> userCollection) {
+		Document userDocument = new Document("_id", uniqueUserId);
 		userDocument.append("username", username);
 		userDocument.append("first name", firstName);
 		userDocument.append("last name", lastName);
