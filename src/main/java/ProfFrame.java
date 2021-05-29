@@ -1,20 +1,14 @@
-import java.awt.*;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.WindowConstants;
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ProfFrame extends JFrame implements ProfView {
     private Container contentPane;
@@ -37,19 +31,14 @@ public class ProfFrame extends JFrame implements ProfView {
     private JButton addCourseToTeach;
     private JButton removeCourseToTeach;
     private DefaultListModel<String> courseModel;
-    private String query;
-    private ArrayList<String> queryParams;
-    private ResultSet queryResult;
-    private SQLQuery SQLInstance;
-    private String profID;
-    private ProfModel profModel;
+    private final String profID;
+    private final ProfModel profModel;
     private DefaultListModel courseTaughtListModel;
+    private final MongoQuery mongoQuery;
 
     public ProfFrame(String profID) {
         profModel = new ProfModel();
-        queryParams = new ArrayList<>();
-        SQLInstance = new SQLQuery();
-        queryResult = null;
+        mongoQuery = new MongoQuery();
         this.profID = profID;
         initProfessorGUI();
     }
@@ -81,9 +70,9 @@ public class ProfFrame extends JFrame implements ProfView {
         firstNameField = new JTextField();
         lastNameField = new JTextField();
         tuitionFeeField = new JTextField();
-        firstNamePanel = createGenericTextFieldPanel(firstNameField,ProfFrameConstants.FIRST_NAME_FIELD_LABEL.toString(),c);
-        lastNamePanel = createGenericTextFieldPanel(lastNameField,ProfFrameConstants.LAST_NAME_FIELD_LABEL.toString(), c);
-        tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField,ProfFrameConstants.TUITION_FEE_FIELD_LABEL.toString(), c );
+        firstNamePanel = createGenericTextFieldPanel(firstNameField, ProfFrameConstants.FIRST_NAME_FIELD_LABEL.toString(), c);
+        lastNamePanel = createGenericTextFieldPanel(lastNameField, ProfFrameConstants.LAST_NAME_FIELD_LABEL.toString(), c);
+        tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField, ProfFrameConstants.TUITION_FEE_FIELD_LABEL.toString(), c);
 
         // student course list panel setup
         courseModel = new DefaultListModel<>();
@@ -196,41 +185,44 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private void populateCourseTaught() {
+        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        Document profDocument = profCollection.find(new Document("username", profID)).first();
+        List<String> courseTaught = profDocument.getList("coursesTaught", String.class);
         courseTaughtListModel.clear();
-        query = "SELECT courseTaught FROM professor WHERE professorID = ?";
-        queryParams.clear();
-        queryParams.add(profID);
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            if (queryResult.next()) {
-                String[] courseTaught = queryResult.getString("courseTaught").split(",");
-                ArrayList<String> courseList = new ArrayList<>(Arrays.asList(courseTaught));
-                profModel.setCourseTaughtData(courseList);
-                for (String courseTaughtValue : profModel.getCourseTaughtData()) {
-                    courseTaughtListModel.addElement(courseTaughtValue);
-                }
-                courseTaughtList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            }
-        } catch (SQLException e) {
-            e.getStackTrace();
+        for (String courseTaughtItem : courseTaught) {
+            courseTaughtListModel.addElement(courseTaughtItem);
         }
     }
 
     private void populateStudentID() {
-        ArrayList<String> studentListData = new ArrayList<>();
-        SQLInstance = new SQLQuery();
-        query = "SELECT studentID FROM student";
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            while (queryResult.next()) {
-                studentListData.add(queryResult.getString("studentID"));
-                profModel.setStudentListData(studentListData);
-                studentList = new JList(profModel.getStudentListData().toArray());
-                studentList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-            }
-        } catch (SQLException e) {
-            e.getStackTrace();
+        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
+        MongoCollection<Document> professorCollection = mongoQuery.getCollection("Professor");
+        Document profDocument = professorCollection.find(new Document("username", profID)).first();
+        FindIterable<Document> studentDocumentIterable = studentCollection.find();
+        List<String> professorTaughtCourse = profDocument.getList("coursesTaught", String.class);
+
+        // stores course names taught by professor in a arraylist
+        ArrayList<String> professorCourses = new ArrayList<>();
+        for (String profCourse : professorTaughtCourse) {
+            professorCourses.add(profCourse);
         }
+
+        Set<String> studentListData = new HashSet<>();
+        for (Document student : studentDocumentIterable) {
+            List<Document> studentTakenCourse = student.getList("courseGrades", Document.class);
+            for (Document course : studentTakenCourse) {
+                if (professorCourses.contains(course.getString("courseName"))) {
+                    String student_username = student.getString("username");
+                    // make sure student is being added for the first time
+                    if (!studentListData.contains(student_username)) {
+                        // this student takes the course taught by this professor
+                        studentListData.add(student.getString("username"));
+                    }
+                }
+            }
+        }
+        studentList = new JList(studentListData.toArray());
+        studentList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
 
     private void setupActionListener(ProfController profController) {
@@ -253,62 +245,39 @@ public class ProfFrame extends JFrame implements ProfView {
      *
      * @param studentID
      */
-    private void updateFields(Object studentID) {
-        String ID = (String) studentID;
-        ArrayList<String> courses = new ArrayList<>();
-        ArrayList<String> grades = new ArrayList<>();
-        SQLInstance.openSQLConnection();
-        query = "SELECT * FROM student WHERE studentID = ?";
-        queryParams.clear();
-        queryParams.add(ID);
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            if (queryResult.next()) {
-                firstNameField.setText(queryResult.getString("firstName"));
-                lastNameField.setText(queryResult.getString("lastName"));
-                tuitionFeeField.setText(queryResult.getString("tuitionFee"));
-            }
+    private void updateStudentInformationFields(Object studentID) {
+        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
+        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        Document studentDocument = studentCollection.find(new Document("username", studentID)).first();
+        Document profDocument = profCollection.find(new Document("username", profID)).first();
+        String firstName = studentDocument.getString("first name");
+        String lastName = studentDocument.getString("last name");
+        Long tuitionFee = studentDocument.getLong("tuition fee");
+        List<Document> courseGrades = studentDocument.getList("courseGrades", Document.class);
+        List<String> courseTaught = profDocument.getList("coursesTaught", String.class);
 
-            // grabs course string
-            query = "SELECT courses FROM student WHERE studentID = ?";
-            queryParams.clear();
-            queryParams.add(ID);
-            queryResult = SQLInstance.runQuery(query, queryParams);
-
-            if (queryResult.next()) {
-                String[] studentCourses = queryResult.getString("courses").split(",");
-                List<String> studentCourseList = Arrays.asList(studentCourses);
-                courses = new ArrayList<>(studentCourseList);
-            }
-
-            // grabs grades string
-            query = "SELECT grades FROM student WHERE studentID = ?";
-            queryParams.clear();
-            queryParams.add(ID);
-            queryResult = SQLInstance.runQuery(query, queryParams);
-
-            if (queryResult.next()) {
-                String[] studentGrades = queryResult.getString("grades").split(",");
-                List<String> studentGradeList = Arrays.asList(studentGrades);
-                grades = new ArrayList<>(studentGradeList);
-            }
-
-            for (String course : courses) {
-                courses.set(courses.indexOf(course), course + " - " + grades.get(courses.indexOf(course)));
-            }
-            SQLInstance.closeSQLConnection();
-            courseModel.clear();
-            courses.forEach(course -> courseModel.addElement(course));
-            //courseModel.addAll(0, courses);
-        } catch (SQLException e) {
-            e.getStackTrace();
+        // stores course names taught by professor in a arraylist
+        ArrayList<String> professorCourses = new ArrayList<>();
+        for (String profCourse : courseTaught) {
+            professorCourses.add(profCourse);
         }
 
+        firstNameField.setText(firstName);
+        lastNameField.setText(lastName);
+        tuitionFeeField.setText(String.valueOf(tuitionFee));
+        courseModel.clear();
+        for (Document courseGrade : courseGrades) {
+            String courseName = courseGrade.getString("courseName");
+            Long grade = courseGrade.getLong("grade");
+            if (professorCourses.contains(courseName)) {
+                courseModel.addElement(courseName + " - " + grade);
+            }
+        }
     }
 
     @Override
     public void handleShowStudentInfo(Object selectedValue) {
-        updateFields(selectedValue);
+        updateStudentInformationFields(selectedValue);
     }
 
     @Override
@@ -318,68 +287,22 @@ public class ProfFrame extends JFrame implements ProfView {
         String grade = (String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
                 JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]);
 
-        ArrayList<String> courses = null;
-        ArrayList<String> grades = null;
-        SQLInstance = new SQLQuery();
-        query = "SELECT courses FROM student WHERE studentID = ?";
-        queryParams.clear();
-        queryParams.add((String) studentList.getSelectedValue());
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            if (queryResult.next()) {
-                String[] studentCourses = queryResult.getString("courses").split(",");
-                List<String> studentCourseList = Arrays.asList(studentCourses);
-                courses = new ArrayList<>(studentCourseList);
-            }
+        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
+        Document studentDocument = studentCollection.find(new Document("username", studentList.getSelectedValue())).first();
 
-            // grabs grades string
-            query = "SELECT grades FROM student WHERE studentID = ?";
-            queryParams.clear();
-            queryParams.add((String) studentList.getSelectedValue());
-            queryResult = SQLInstance.runQuery(query, queryParams);
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", studentDocument.getObjectId("_id"));
+        query.put("courseGrades.courseName", coursesBreakdown[0]);
 
-            if (queryResult.next()) {
-                String[] studentGrades = queryResult.getString("grades").split(",");
-                List<String> studentGradeList = Arrays.asList(studentGrades);
-                grades = new ArrayList<>(studentGradeList);
-            }
+        BasicDBObject data = new BasicDBObject();
+        data.put("courseGrades.$.grade", Long.valueOf(grade));
 
-            // finds course to change and changes corresponding course grade
-            for (int i = 0; i < courses.size(); i++) {
-                if (courses.get(i).equals(coursesBreakdown[0])) {
-                    grades.set(i, grade);
-                }
-            }
+        BasicDBObject command = new BasicDBObject();
+        command.put("$set", data);
 
-            String courseToPass = "";
-            String gradeToPass = "";
-            for (String courseToUpdate : courses) {
-                if (courseToUpdate.isEmpty()) {
-                    continue;
-                }
-                courseToPass += courseToUpdate + ",";
-            }
-            for (String gradeToUpdate : grades) {
-                if (gradeToUpdate.isEmpty()) {
-                    continue;
-                }
-                gradeToPass += gradeToUpdate + ",";
-            }
-
-            query = "UPDATE student SET courses = ?, grades = ? WHERE studentID = ?";
-            queryParams.clear();
-            queryParams.add(courseToPass);
-            queryParams.add(gradeToPass);
-            queryParams.add((String) studentList.getSelectedValue());
-            SQLInstance.runUpdate(query, queryParams);
-
-            // upon clicking OK, update fields
-            if (grade != null) {
-                updateFields(studentList.getSelectedValue());
-            }
-        } catch (SQLException e1) {
-            e1.getStackTrace();
-        }
+        studentCollection.updateOne(query, command);
+        updateStudentInformationFields(studentList.getSelectedValue());
+        disableEditButtons();
     }
 
     @Override
@@ -389,64 +312,54 @@ public class ProfFrame extends JFrame implements ProfView {
 
     @Override
     public void handleAddCourseTaught() {
-        String courseTaught = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", + JOptionPane.OK_OPTION);
-        SQLInstance.openSQLConnection();
-        query = "SELECT * FROM professor WHERE professorID = ?";
-        queryParams.clear();
-        queryParams.add(profID);
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            if (queryResult.next()) {
-                String courseTaughtOld = queryResult.getString("courseTaught");
-                String[] courseTaughtOldList = courseTaughtOld.split(",");
-                ArrayList<String> courseTaughtNewList = new ArrayList<>(Arrays.asList(courseTaughtOldList));
-                courseTaughtNewList.add(courseTaught);
-                String courseTaughtNew = String.join(",", courseTaughtNewList);
-                query = "UPDATE professor SET courseTaught = ? WHERE professorID = ?";
-                queryParams.clear();
-                queryParams.add(courseTaughtNew);
-                queryParams.add(profID);
-                SQLInstance.runUpdate(query, queryParams);
+        String courseTaught = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", +JOptionPane.OK_OPTION);
+        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        Document profDocument = profCollection.find(new Document("username", profID)).first();
 
-                populateCourseTaught();
-            }
-            SQLInstance.closeSQLConnection();
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", profDocument.getObjectId("_id"));
+
+        BasicDBObject fields = new BasicDBObject();
+        fields.put("coursesTaught", courseTaught);
+
+        BasicDBObject command = new BasicDBObject();
+        command.put("$push", fields);
+
+        profCollection.updateOne(query, command);
+        populateCourseTaught();
     }
 
     @Override
     public void handleRemoveCourseTaught() {
         String currentCourseSelected = (String) courseTaughtList.getSelectedValue();
-        SQLInstance.openSQLConnection();
-        query = "SELECT * FROM professor WHERE professorID = ?";
-        queryParams.clear();
-        queryParams.add(profID);
-        queryResult = SQLInstance.runQuery(query, queryParams);
-        try {
-            if (queryResult.next()) {
-                String courseTaughtOld = queryResult.getString("courseTaught");
-                String[] courseTaughtOldList = courseTaughtOld.split(",");
-                ArrayList<String> courseTaughtNewList = new ArrayList<>(Arrays.asList(courseTaughtOldList));
-                courseTaughtNewList.remove(currentCourseSelected);
-                String courseTaughtNew = String.join(",", courseTaughtNewList);
-                query = "UPDATE professor SET courseTaught = ? WHERE professorID = ?";
-                queryParams.clear();
-                queryParams.add(courseTaughtNew);
-                queryParams.add(profID);
-                SQLInstance.runUpdate(query, queryParams);
+        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        Document profDocument = profCollection.find(new Document("username", profID)).first();
 
-                populateCourseTaught();
-                removeCourseToTeach.setEnabled(false);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        BasicDBObject query = new BasicDBObject();
+        query.put("_id", profDocument.getObjectId("_id"));
+
+        BasicDBObject fields = new BasicDBObject();
+        fields.put("coursesTaught", currentCourseSelected);
+
+        BasicDBObject command = new BasicDBObject();
+        command.put("$pull", fields);
+
+        profCollection.updateOne(query, command);
+        populateCourseTaught();
+        disableEditButtons();
     }
 
     @Override
     public void handleEnableRemoveCourseTaught() {
         removeCourseToTeach.setEnabled(true);
+    }
+
+    public void disableEditButtons() {
+        if (studentList.isSelectionEmpty()) {
+            editButton.setEnabled(false);
+        }
+        if (courseTaughtList.isSelectionEmpty()) {
+            editButton.setEnabled(false);
+        }
     }
 }
