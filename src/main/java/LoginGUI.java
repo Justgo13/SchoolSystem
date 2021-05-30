@@ -1,5 +1,3 @@
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -29,12 +27,12 @@ public class LoginGUI extends JFrame implements ActionListener{
 	private JPanel loginPanel;
 	private JButton loginButton;
 	private JButton cancelButton;
-	private ObjectId objectId;
+	private ObjectId accountObjectID;
     /**
      * Creates login GUI
      */
     public LoginGUI() {
-		objectId = new ObjectId();
+		accountObjectID = new ObjectId();
     	initLogin();
     }
     
@@ -113,7 +111,7 @@ public class LoginGUI extends JFrame implements ActionListener{
         if (SignInConstants.LOGIN_BTN_CMD.toString().equals(e.getActionCommand())) {
         	// login success when no fields missing, valid password, username exists, and account type valid
 			if (checkAccountDetails()) {
-				loginSuccess(objectId);
+				loginSuccess();
 				dispose();
 			} else {
 				String errorList = "Account details: " + checkAccountDetails();
@@ -129,15 +127,9 @@ public class LoginGUI extends JFrame implements ActionListener{
 	 * @return boolean true if it matches database, false otherwise
 	 */
 	private boolean checkAccountDetails() {
-		MongoCollection<Document> userCollection = MongoQueryInterface.getCollection("Userpass");
-		FindIterable<Document> userPassPair = userCollection.find();
-		for (Document doc : userPassPair){
-			String username = doc.getString("username");
-			String password = doc.getString("password");
-			if (username.equals(usernameField.getText()) && password.equals(passwordField.getText())) { // correct user found
-				objectId = doc.getObjectId("_id");
-				return true;
-			}
+		accountObjectID = MongoQueryInterface.getAccountId(usernameField.getText(), passwordField.getText());
+		if (accountObjectID != null) {
+			return true;
 		}
 		usernameField.setBorder(BorderFactory.createLineBorder(Color.RED));
 		passwordField.setBorder(BorderFactory.createLineBorder(Color.RED));
@@ -147,12 +139,12 @@ public class LoginGUI extends JFrame implements ActionListener{
 	/**
 	 * Opens the correct gui panel based on login details
 	 */
-	private void loginSuccess(ObjectId objectID) {
+	private void loginSuccess() {
 		String collectionName = "";
 		/* Figured out that a user exists and need to find the type of user that logged in */
 		ArrayList<Document> userAccountDocuments = MongoQueryInterface.getUserAccountDocuments();
 		for (Document doc : userAccountDocuments) {
-			if (doc.get("_id").equals(objectID)) {
+			if (doc.get("_id").equals(accountObjectID)) {
 				collectionName = MongoQueryInterface.getDocumentCollectionName(doc);
 				break;
 			}
@@ -163,7 +155,7 @@ public class LoginGUI extends JFrame implements ActionListener{
 			break;
 			case "Professor":
 				System.out.println("Logged in as professor");
-				new ProfFrame(usernameField.getText());
+				new ProfFrame(accountObjectID);
 			break;
 			case "Student":
 				new StudentGUI(usernameField.getText());

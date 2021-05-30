@@ -1,14 +1,12 @@
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 
 public class ProfFrame extends JFrame implements ProfView {
     private Container contentPane;
@@ -19,9 +17,9 @@ public class ProfFrame extends JFrame implements ProfView {
     private JPanel coursesPanel;
     private JPanel profCommandsPanel;
     private JPanel studentIDPanel;
-    private JList studentList;
-    private JList courseTaughtList;
-    private JList courseList;
+    private JList<Object> studentList;
+    private JList<String> courseTaughtList;
+    private JList<String> courseList;
     private JTextField firstNameField;
     private JTextField lastNameField;
     private JTextField tuitionFeeField;
@@ -31,11 +29,11 @@ public class ProfFrame extends JFrame implements ProfView {
     private JButton addCourseToTeach;
     private JButton removeCourseToTeach;
     private DefaultListModel<String> courseModel;
-    private final String profID;
+    private final ObjectId profID;
     private final ProfModel profModel;
-    private DefaultListModel courseTaughtListModel;
+    private DefaultListModel<String> courseTaughtListModel;
 
-    public ProfFrame(String profID) {
+    public ProfFrame(ObjectId profID) {
         profModel = new ProfModel();
         this.profID = profID;
         initProfessorGUI();
@@ -45,8 +43,8 @@ public class ProfFrame extends JFrame implements ProfView {
         ProfController profController = new ProfController(profModel);
         profModel.addProfView(this);
 
-        courseTaughtListModel = new DefaultListModel();
-        courseTaughtList = new JList(courseTaughtListModel);
+        courseTaughtListModel = new DefaultListModel<>();
+        courseTaughtList = new JList<>(courseTaughtListModel);
 
         // creating main panels
         contentPane = getContentPane();
@@ -60,11 +58,11 @@ public class ProfFrame extends JFrame implements ProfView {
 
         populateStudentID(); // populate the student ID list from database
 
-        populateCourseTaught(); // populate courses taken by student from database
+        updateProfessorCourseTaught(); // populate courses taken by student from database
 
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints c = createGenericGridBagConstraints();
 
-        // text fields
+        // create text fields
         firstNameField = new JTextField();
         lastNameField = new JTextField();
         tuitionFeeField = new JTextField();
@@ -72,9 +70,9 @@ public class ProfFrame extends JFrame implements ProfView {
         lastNamePanel = createGenericTextFieldPanel(lastNameField, ProfFrameConstants.LAST_NAME_FIELD_LABEL.toString(), c);
         tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField, ProfFrameConstants.TUITION_FEE_FIELD_LABEL.toString(), c);
 
-        // student course list panel setup
+        // professor course taught list panel setup
         courseModel = new DefaultListModel<>();
-        courseList = new JList(courseModel);
+        courseList = new JList<>(courseModel);
         courseScroll = new JScrollPane(courseList);
         courseList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         coursesPanel = new JPanel(new GridBagLayout());
@@ -84,11 +82,6 @@ public class ProfFrame extends JFrame implements ProfView {
         editButton = new JButton(ProfFrameConstants.EDIT_BUTTON_LABEL.toString());
         editButton.setEnabled(false);
 
-        c.fill = GridBagConstraints.BOTH;
-        c.gridx = 0;
-        c.gridy = 0;
-        c.weightx = 1.0;
-        c.weighty = 1.0;
         c.insets = new Insets(5, 5, 5, 5);
         c.anchor = GridBagConstraints.FIRST_LINE_START;
 
@@ -97,7 +90,7 @@ public class ProfFrame extends JFrame implements ProfView {
         c.weightx = 0.2;
         contentPane.add(studentIDPanel, c);
 
-        c.weightx = 0.80;
+        c.weightx = 0.8;
         c.gridx = 1;
         c.anchor = GridBagConstraints.FIRST_LINE_END;
         infoPanel = createStudentInfoPanel();
@@ -112,7 +105,6 @@ public class ProfFrame extends JFrame implements ProfView {
         c.gridx = 0;
         c.gridy = 1;
         c.gridwidth = 2;
-        c.fill = GridBagConstraints.BOTH;
         contentPane.add(profCommandsPanel, c);
 
         setupActionListener(profController);
@@ -132,6 +124,7 @@ public class ProfFrame extends JFrame implements ProfView {
         courseTaughtScroll = new JScrollPane(courseTaughtList);
         profCommandsPanel.add(courseTaughtScroll, c);
 
+        c.gridwidth = 1;
         c.gridx = 0;
         c.gridy = 1;
         c.fill = GridBagConstraints.HORIZONTAL;
@@ -163,17 +156,12 @@ public class ProfFrame extends JFrame implements ProfView {
         JPanel textPanel = new JPanel(new GridBagLayout());
         textPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), textBoxTitle));
         textField.setEditable(false);
-        c.fill = GridBagConstraints.BOTH;
-        c.weightx = 1.0;
-        c.weighty = 1.0;
         textPanel.add(textField, c);
         return textPanel;
     }
 
-    private void populateCourseTaught() {
-        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
-        Document profDocument = profCollection.find(new Document("username", profID)).first();
-        List<String> courseTaught = profDocument.getList("coursesTaught", String.class);
+    private void updateProfessorCourseTaught() {
+        List<String> courseTaught = MongoQueryInterface.getProfessorCourses(profID);
         courseTaughtListModel.clear();
         for (String courseTaughtItem : courseTaught) {
             courseTaughtListModel.addElement(courseTaughtItem);
@@ -181,158 +169,100 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private void populateStudentID() {
-        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
-        MongoCollection<Document> professorCollection = MongoQueryInterface.getCollection("Professor");
-        Document profDocument = professorCollection.find(new Document("username", profID)).first();
-        FindIterable<Document> studentDocumentIterable = studentCollection.find();
-        List<String> professorTaughtCourse = profDocument.getList("coursesTaught", String.class);
-
-        // stores course names taught by professor in a arraylist
-        ArrayList<String> professorCourses = new ArrayList<>();
-        for (String profCourse : professorTaughtCourse) {
-            professorCourses.add(profCourse);
-        }
-
-        Set<String> studentListData = new HashSet<>();
-        for (Document student : studentDocumentIterable) {
-            List<Document> studentTakenCourse = student.getList("courseGrades", Document.class);
-            for (Document course : studentTakenCourse) {
-                if (professorCourses.contains(course.getString("courseName"))) {
-                    String student_username = student.getString("username");
-                    // make sure student is being added for the first time
-                    if (!studentListData.contains(student_username)) {
-                        // this student takes the course taught by this professor
-                        studentListData.add(student.getString("username"));
-                    }
-                }
-            }
-        }
-        studentList = new JList(studentListData.toArray());
+        Map<ObjectId, List<String>> studentCoursesTaughtByProfessor = getStudentCoursesTaughtByProfessor();
+        List<ObjectId> studentId = List.copyOf(studentCoursesTaughtByProfessor.keySet());
+        studentList = new JList<>(studentId.toArray());
         studentList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-    }
-
-    private void setupActionListener(ProfController profController) {
-        courseList.addListSelectionListener(profController);
-        courseList.setName(ProfFrameConstants.COURSE_LIST_NAME.toString());
-        studentList.addListSelectionListener(profController);
-        studentList.setName(ProfFrameConstants.STUDENT_LIST_NAME.toString());
-        editButton.addActionListener(profController);
-        editButton.setActionCommand(ProfFrameConstants.EDIT_BUTTON_COMMAND.toString());
-        courseTaughtList.addListSelectionListener(profController);
-        courseTaughtList.setName(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString());
-        addCourseToTeach.addActionListener(profController);
-        addCourseToTeach.setActionCommand(ProfFrameConstants.ADD_COURSE_BUTTON_COMMAND.toString());
-        removeCourseToTeach.addActionListener(profController);
-        removeCourseToTeach.setActionCommand(ProfFrameConstants.REMOVE_COURSE_BUTTON_COMMAND.toString());
     }
 
     /**
      * Populate student information fields
-     *
-     * @param studentID
      */
-    private void updateStudentInformationFields(Object studentID) {
-        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
-        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
-        Document studentDocument = studentCollection.find(new Document("username", studentID)).first();
-        Document profDocument = profCollection.find(new Document("username", profID)).first();
-        String firstName = studentDocument.getString("first name");
-        String lastName = studentDocument.getString("last name");
-        Long tuitionFee = studentDocument.getLong("tuition fee");
-        List<Document> courseGrades = studentDocument.getList("courseGrades", Document.class);
-        List<String> courseTaught = profDocument.getList("coursesTaught", String.class);
-
-        // stores course names taught by professor in a arraylist
-        ArrayList<String> professorCourses = new ArrayList<>();
-        for (String profCourse : courseTaught) {
-            professorCourses.add(profCourse);
-        }
+    private void updateStudentInformationFields(ObjectId studentID) {
+        String firstName = MongoQueryInterface.getStudentFirstName(studentID);
+        String lastName = MongoQueryInterface.getStudentLastName(studentID);
+        Long tuitionFee = MongoQueryInterface.getStudentTuitionFee(studentID);
 
         firstNameField.setText(firstName);
         lastNameField.setText(lastName);
         tuitionFeeField.setText(String.valueOf(tuitionFee));
         courseModel.clear();
-        for (Document courseGrade : courseGrades) {
-            String courseName = courseGrade.getString("courseName");
-            Long grade = courseGrade.getLong("grade");
-            if (professorCourses.contains(courseName)) {
-                courseModel.addElement(courseName + " - " + grade);
+
+        Map<ObjectId, List<String>> studentCoursesTaughtByProfessor = getStudentCoursesTaughtByProfessor();
+        List<String> studentCourses = studentCoursesTaughtByProfessor.get(studentID);
+
+        for (String studentCourseName : studentCourses) {
+            Long courseGrade = MongoQueryInterface.getStudentCourseGrade(studentID, studentCourseName);
+            courseModel.addElement(studentCourseName + " - " + courseGrade);
+        }
+    }
+
+    public Map<ObjectId, List<String>> getStudentCoursesTaughtByProfessor() {
+        List<String> professorCourses = MongoQueryInterface.getProfessorCourses(profID);
+        Map<ObjectId, List<String>> studentInformation = MongoQueryInterface.getAllStudentCourses();
+        Map<ObjectId, List<String>> studentCoursesTaughtByProfessor = new HashMap<>();
+
+        for (String professorCourse : professorCourses) {
+            List<String> studentProfessorCourseMatches = new ArrayList<>();
+            Set<ObjectId> studentIds = studentInformation.keySet();
+            for (ObjectId studentId : studentIds) {
+                studentProfessorCourseMatches.clear();
+                List<String> currentStudentCourses = studentInformation.get(studentId);
+                if (currentStudentCourses.contains(professorCourse)) {
+                    // Found a course that the student takes that the professor also teaches
+                    if (studentCoursesTaughtByProfessor.containsKey(studentId)) {
+                        // get existing list
+                        List<String> existingStudentCourses = studentCoursesTaughtByProfessor.get(studentId);
+                        existingStudentCourses.add(professorCourse);
+                        studentCoursesTaughtByProfessor.put(studentId, existingStudentCourses);
+                    } else {
+                        studentProfessorCourseMatches.add(professorCourse);
+                        studentCoursesTaughtByProfessor.put(studentId, studentProfessorCourseMatches);
+                    }
+                }
             }
         }
+        return studentCoursesTaughtByProfessor;
     }
 
     @Override
     public void handleShowStudentInfo(Object selectedValue) {
-        updateStudentInformationFields(selectedValue);
+        updateStudentInformationFields((ObjectId) selectedValue);
     }
 
     @Override
     public void handleUpdateCourseGrade() {
-        String course = (String) courseList.getSelectedValue();
+        String course = courseList.getSelectedValue();
+        ObjectId studentID = (ObjectId) studentList.getSelectedValue();
         String[] coursesBreakdown = course.split(" ");
-        String grade = (String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
-                JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]);
+        String courseName = coursesBreakdown[0];
+        Long grade = Long.parseLong((String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
+                JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]));
+        MongoQueryInterface.updateStudentGrade(studentID, courseName, grade);
+        updateStudentInformationFields(studentID);
+        courseList.setSelectedValue(null, false);
+        disableEditButtons();
+    }
 
-        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
-        Document studentDocument = studentCollection.find(new Document("username", studentList.getSelectedValue())).first();
+    @Override
+    public void handleAddCourseTaught() {
+        String courseToAdd = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", JOptionPane.OK_OPTION);
+        MongoQueryInterface.addProfessorCourse(profID, courseToAdd);
+        updateProfessorCourseTaught();
+    }
 
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", studentDocument.getObjectId("_id"));
-        query.put("courseGrades.courseName", coursesBreakdown[0]);
-
-        BasicDBObject data = new BasicDBObject();
-        data.put("courseGrades.$.grade", Long.valueOf(grade));
-
-        BasicDBObject command = new BasicDBObject();
-        command.put("$set", data);
-
-        studentCollection.updateOne(query, command);
-        updateStudentInformationFields(studentList.getSelectedValue());
+    @Override
+    public void handleRemoveCourseTaught() {
+        String courseToRemove = courseTaughtList.getSelectedValue();
+        MongoQueryInterface.removeProfessorCourse(profID, courseToRemove);
+        updateProfessorCourseTaught();
+        courseTaughtList.setSelectedValue(null, false);
         disableEditButtons();
     }
 
     @Override
     public void handleEnableEditCourse() {
         editButton.setEnabled(true);
-    }
-
-    @Override
-    public void handleAddCourseTaught() {
-        String courseTaught = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", +JOptionPane.OK_OPTION);
-        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
-        Document profDocument = profCollection.find(new Document("username", profID)).first();
-
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", profDocument.getObjectId("_id"));
-
-        BasicDBObject fields = new BasicDBObject();
-        fields.put("coursesTaught", courseTaught);
-
-        BasicDBObject command = new BasicDBObject();
-        command.put("$push", fields);
-
-        profCollection.updateOne(query, command);
-        populateCourseTaught();
-    }
-
-    @Override
-    public void handleRemoveCourseTaught() {
-        String currentCourseSelected = (String) courseTaughtList.getSelectedValue();
-        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
-        Document profDocument = profCollection.find(new Document("username", profID)).first();
-
-        BasicDBObject query = new BasicDBObject();
-        query.put("_id", profDocument.getObjectId("_id"));
-
-        BasicDBObject fields = new BasicDBObject();
-        fields.put("coursesTaught", currentCourseSelected);
-
-        BasicDBObject command = new BasicDBObject();
-        command.put("$pull", fields);
-
-        profCollection.updateOne(query, command);
-        populateCourseTaught();
-        disableEditButtons();
     }
 
     @Override
@@ -357,5 +287,20 @@ public class ProfFrame extends JFrame implements ProfView {
         c.weighty = 1.0;
         c.fill = GridBagConstraints.BOTH;
         return c;
+    }
+
+    private void setupActionListener(ProfController profController) {
+        courseList.addListSelectionListener(profController);
+        courseList.setName(ProfFrameConstants.COURSE_LIST_NAME.toString());
+        studentList.addListSelectionListener(profController);
+        studentList.setName(ProfFrameConstants.STUDENT_LIST_NAME.toString());
+        editButton.addActionListener(profController);
+        editButton.setActionCommand(ProfFrameConstants.EDIT_BUTTON_COMMAND.toString());
+        courseTaughtList.addListSelectionListener(profController);
+        courseTaughtList.setName(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString());
+        addCourseToTeach.addActionListener(profController);
+        addCourseToTeach.setActionCommand(ProfFrameConstants.ADD_COURSE_BUTTON_COMMAND.toString());
+        removeCourseToTeach.addActionListener(profController);
+        removeCourseToTeach.setActionCommand(ProfFrameConstants.REMOVE_COURSE_BUTTON_COMMAND.toString());
     }
 }

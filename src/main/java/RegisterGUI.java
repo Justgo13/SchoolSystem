@@ -1,5 +1,3 @@
-import com.mongodb.client.MongoCollection;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import java.awt.Color;
@@ -161,14 +159,14 @@ public class RegisterGUI extends JFrame implements ActionListener{
 			// register success when no fields missing, password match, username not in database, and account type valid
 			if (checkIfFieldFilled() 
 					&& passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText())
-					&& userNameNotExist()
+					&& usernameDoesNotExist()
 					&& accountTypeErrorCheck()) {
 				storeFields(userIDField.getText(), passwordField.getText(), firstNameField.getText(), lastNameField.getText());
 				dispose();
 			} else {
 				String errorList = "Fields filled: " + checkIfFieldFilled() + "\n" + 
 								   "Password match: " + passwordErrorCheck(passwordField.getText(), confirmPasswordField.getText()) + "\n" +
-								   "Username unique: " + userNameNotExist() + "\n" +
+								   "Username unique: " + usernameDoesNotExist() + "\n" +
 								   "Account type valid: " + accountTypeErrorCheck();
 				JOptionPane.showMessageDialog(welcomePanel, errorList);
 			}
@@ -206,44 +204,27 @@ public class RegisterGUI extends JFrame implements ActionListener{
 	/**
 	 * Checks if username already exists in database
 	 */
-	private boolean userNameNotExist() {
-		MongoCollection<Document> userpassCollection = MongoQueryInterface.getCollection("Userpass");
-		return userpassCollection.countDocuments(new Document("username", userIDField.getText())) <= 0;
+	private boolean usernameDoesNotExist() {
+		return MongoQueryInterface.usernameExists();
 	}
 
 	/**
 	 * Stores inputted fields into SQL database
 	 */
 	private void storeFields(String username, String password, String firstName, String lastName) {
-		MongoCollection<Document> userPassCollection = MongoQueryInterface.getCollection("Userpass");
-		ObjectId uniqueUserID = new ObjectId();
-		Document userPassPair = new Document("_id", uniqueUserID);
-		userPassPair.append("username", username);
-		userPassPair.append("password", password);
-		userPassCollection.insertOne(userPassPair);
+		ObjectId accountObjectID = MongoQueryInterface.createAccountDocument(username, password);
 
 		switch ((String) Objects.requireNonNull(accountTypeComboBox.getSelectedItem())) {
 			case "Dean":
-				MongoCollection<Document> deanCollection = MongoQueryInterface.getCollection("Dean");
-				createUserDocument(uniqueUserID, username, firstName, lastName, deanCollection);
+				// createUserDocument(accountObjectID, username, firstName, lastName, deanCollection);
 				break;
 			case "Professor":
-				MongoCollection<Document> professorCollection = MongoQueryInterface.getCollection("Professor");
-				createUserDocument(uniqueUserID, username, firstName, lastName, professorCollection);
+				MongoQueryInterface.createProfessorDocument(accountObjectID, username, firstName, lastName);
 				break;
 			case "Student":
-				MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
-				createUserDocument(uniqueUserID, username, firstName, lastName, studentCollection);
+				// createUserDocument(accountObjectID, username, firstName, lastName, studentCollection);
 				break;
 		}
-	}
-
-	private void createUserDocument(ObjectId uniqueUserId, String username, String firstName, String lastName, MongoCollection<Document> userCollection) {
-		Document userDocument = new Document("_id", uniqueUserId);
-		userDocument.append("username", username);
-		userDocument.append("first name", firstName);
-		userDocument.append("last name", lastName);
-		userCollection.insertOne(userDocument);
 	}
 
 	/**
