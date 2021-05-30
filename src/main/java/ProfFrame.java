@@ -34,11 +34,9 @@ public class ProfFrame extends JFrame implements ProfView {
     private final String profID;
     private final ProfModel profModel;
     private DefaultListModel courseTaughtListModel;
-    private final MongoQuery mongoQuery;
 
     public ProfFrame(String profID) {
         profModel = new ProfModel();
-        mongoQuery = new MongoQuery();
         this.profID = profID;
         initProfessorGUI();
     }
@@ -128,37 +126,26 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private JPanel createCourseTaughtPanel() {
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints c = createGenericGridBagConstraints();
         JPanel profCommandsPanel = new JPanel(new GridBagLayout());
+        c.gridwidth = 2;
+        courseTaughtScroll = new JScrollPane(courseTaughtList);
+        profCommandsPanel.add(courseTaughtScroll, c);
+
         c.gridx = 0;
         c.gridy = 1;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
         c.fill = GridBagConstraints.HORIZONTAL;
         profCommandsPanel.add(addCourseToTeach, c);
 
         c.gridx = 1;
         c.gridy = 1;
-        c.fill = GridBagConstraints.HORIZONTAL;
         profCommandsPanel.add(removeCourseToTeach, c);
-
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 2;
-        c.fill = GridBagConstraints.BOTH;
-        courseTaughtScroll = new JScrollPane(courseTaughtList);
-        profCommandsPanel.add(courseTaughtScroll, c);
         return profCommandsPanel;
     }
 
     private JPanel createStudentInfoPanel() {
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints c = createGenericGridBagConstraints();
         JPanel panel = new JPanel(new GridBagLayout());
-        c.gridx = 0;
-        c.gridy = 0;
-        c.weighty = 1.0;
-        c.weightx = 1.0;
-        c.fill = GridBagConstraints.BOTH;
         panel.add(firstNamePanel, c);
         c.gridy = 1;
         panel.add(lastNamePanel, c);
@@ -166,7 +153,6 @@ public class ProfFrame extends JFrame implements ProfView {
         panel.add(tuitionFeePanel, c);
         c.gridy = 3;
         panel.add(coursesPanel, c);
-        c.gridx = 0;
         c.gridy = 4;
         c.fill = GridBagConstraints.HORIZONTAL;
         panel.add(editButton, c);
@@ -185,7 +171,7 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private void populateCourseTaught() {
-        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
         Document profDocument = profCollection.find(new Document("username", profID)).first();
         List<String> courseTaught = profDocument.getList("coursesTaught", String.class);
         courseTaughtListModel.clear();
@@ -195,8 +181,8 @@ public class ProfFrame extends JFrame implements ProfView {
     }
 
     private void populateStudentID() {
-        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
-        MongoCollection<Document> professorCollection = mongoQuery.getCollection("Professor");
+        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
+        MongoCollection<Document> professorCollection = MongoQueryInterface.getCollection("Professor");
         Document profDocument = professorCollection.find(new Document("username", profID)).first();
         FindIterable<Document> studentDocumentIterable = studentCollection.find();
         List<String> professorTaughtCourse = profDocument.getList("coursesTaught", String.class);
@@ -246,8 +232,8 @@ public class ProfFrame extends JFrame implements ProfView {
      * @param studentID
      */
     private void updateStudentInformationFields(Object studentID) {
-        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
-        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
+        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
         Document studentDocument = studentCollection.find(new Document("username", studentID)).first();
         Document profDocument = profCollection.find(new Document("username", profID)).first();
         String firstName = studentDocument.getString("first name");
@@ -287,7 +273,7 @@ public class ProfFrame extends JFrame implements ProfView {
         String grade = (String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
                 JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]);
 
-        MongoCollection<Document> studentCollection = mongoQuery.getCollection("Student");
+        MongoCollection<Document> studentCollection = MongoQueryInterface.getCollection("Student");
         Document studentDocument = studentCollection.find(new Document("username", studentList.getSelectedValue())).first();
 
         BasicDBObject query = new BasicDBObject();
@@ -313,7 +299,7 @@ public class ProfFrame extends JFrame implements ProfView {
     @Override
     public void handleAddCourseTaught() {
         String courseTaught = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", +JOptionPane.OK_OPTION);
-        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
         Document profDocument = profCollection.find(new Document("username", profID)).first();
 
         BasicDBObject query = new BasicDBObject();
@@ -332,7 +318,7 @@ public class ProfFrame extends JFrame implements ProfView {
     @Override
     public void handleRemoveCourseTaught() {
         String currentCourseSelected = (String) courseTaughtList.getSelectedValue();
-        MongoCollection<Document> profCollection = mongoQuery.getCollection("Professor");
+        MongoCollection<Document> profCollection = MongoQueryInterface.getCollection("Professor");
         Document profDocument = profCollection.find(new Document("username", profID)).first();
 
         BasicDBObject query = new BasicDBObject();
@@ -361,5 +347,15 @@ public class ProfFrame extends JFrame implements ProfView {
         if (courseTaughtList.isSelectionEmpty()) {
             editButton.setEnabled(false);
         }
+    }
+
+    public GridBagConstraints createGenericGridBagConstraints() {
+        GridBagConstraints c = new GridBagConstraints();
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 1.0;
+        c.weighty = 1.0;
+        c.fill = GridBagConstraints.BOTH;
+        return c;
     }
 }

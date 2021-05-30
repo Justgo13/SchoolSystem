@@ -1,5 +1,4 @@
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.ListCollectionsIterable;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -9,15 +8,12 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -27,29 +23,23 @@ import javax.swing.WindowConstants;
 /**
  * Login screen GUI
  */
-public class Login extends JFrame implements ActionListener {
+public class LoginGUI extends JFrame implements ActionListener{
     private JTextField usernameField;
     private JTextField passwordField;
-	private Container contentPane;
 	private JPanel loginPanel;
-	private GridBagConstraints constraints;
-	private JLabel userID;
-	private JLabel password;
 	private JButton loginButton;
 	private JButton cancelButton;
-	private MongoQuery mongoQuery;
 	private ObjectId objectId;
     /**
      * Creates login GUI
      */
-    public Login() {
-		mongoQuery = new MongoQuery();
+    public LoginGUI() {
 		objectId = new ObjectId();
     	initLogin();
     }
     
     public void initLogin() {
-        contentPane = getContentPane();
+		Container contentPane = getContentPane();
 
         loginPanel = new JPanel(new GridBagLayout());
         contentPane.add(loginPanel);
@@ -59,8 +49,8 @@ public class Login extends JFrame implements ActionListener {
         passwordField = new JTextField();
  		
  		// creates JLabels
- 		userID = new JLabel(SignInConstants.USERNAME_LABEL.toString());
-		password = new JLabel(SignInConstants.PASSWORD_LABEL.toString());
+		JLabel userID = new JLabel(SignInConstants.USERNAME_LABEL.toString());
+		JLabel password = new JLabel(SignInConstants.PASSWORD_LABEL.toString());
 		
 		// create button
 		loginButton = new JButton(SignInConstants.LOGIN_BTN_LABEL.toString());
@@ -69,7 +59,7 @@ public class Login extends JFrame implements ActionListener {
 		// adding actionListener
 		setupButtons();
 
-		constraints = new GridBagConstraints();
+		GridBagConstraints constraints = new GridBagConstraints();
         constraints.fill = GridBagConstraints.HORIZONTAL;
 		constraints.weightx = 0.0;
 		constraints.weighty = 1.0;
@@ -88,7 +78,7 @@ public class Login extends JFrame implements ActionListener {
 		constraints.gridy = 0;
 		constraints.weightx = 1.0;
 		constraints.anchor = GridBagConstraints.WEST;
-		loginPanel.add(usernameField, constraints); 
+		loginPanel.add(usernameField, constraints);
 		
 		constraints.gridx = 1;
 		constraints.gridy = 1;
@@ -139,14 +129,13 @@ public class Login extends JFrame implements ActionListener {
 	 * @return boolean true if it matches database, false otherwise
 	 */
 	private boolean checkAccountDetails() {
-		MongoCollection<Document> userCollection = mongoQuery.getCollection("Userpass");
+		MongoCollection<Document> userCollection = MongoQueryInterface.getCollection("Userpass");
 		FindIterable<Document> userPassPair = userCollection.find();
-		while (userPassPair.cursor().hasNext()) {
-			Document userpass = userPassPair.cursor().next();
-			String username = userpass.getString("username");
-			String password = userpass.getString("password");
+		for (Document doc : userPassPair){
+			String username = doc.getString("username");
+			String password = doc.getString("password");
 			if (username.equals(usernameField.getText()) && password.equals(passwordField.getText())) { // correct user found
-				objectId = userpass.getObjectId("_id");
+				objectId = doc.getObjectId("_id");
 				return true;
 			}
 		}
@@ -161,22 +150,25 @@ public class Login extends JFrame implements ActionListener {
 	private void loginSuccess(ObjectId objectID) {
 		String collectionName = "";
 		/* Figured out that a user exists and need to find the type of user that logged in */
-		ArrayList<Document> userAccountDocuments = mongoQuery.getUserAccountDocuments();
+		ArrayList<Document> userAccountDocuments = MongoQueryInterface.getUserAccountDocuments();
 		for (Document doc : userAccountDocuments) {
 			if (doc.get("_id").equals(objectID)) {
-				collectionName = mongoQuery.getDocumentCollectionName(doc);
+				collectionName = MongoQueryInterface.getDocumentCollectionName(doc);
 				break;
 			}
 		}
     	switch (collectionName) {
 			case "Dean":
+				MongoQueryInterface.closeConnection();
 				new DeanGUI();
 			break;
 			case "Professor":
 				System.out.println("Logged in as professor" );
+				MongoQueryInterface.closeConnection();
 				new ProfFrame(usernameField.getText());
 			break;
 			case "Student":
+				MongoQueryInterface.closeConnection();
 				new StudentGUI(usernameField.getText());
 			break;
     	}
