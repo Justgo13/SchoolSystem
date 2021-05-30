@@ -159,16 +159,13 @@ public class LoginGUI extends JFrame implements ActionListener{
 		}
     	switch (collectionName) {
 			case "Dean":
-				MongoQueryInterface.closeConnection();
 				new DeanGUI();
 			break;
 			case "Professor":
-				System.out.println("Logged in as professor" );
-				MongoQueryInterface.closeConnection();
+				System.out.println("Logged in as professor");
 				new ProfFrame(usernameField.getText());
 			break;
 			case "Student":
-				MongoQueryInterface.closeConnection();
 				new StudentGUI(usernameField.getText());
 			break;
     	}
