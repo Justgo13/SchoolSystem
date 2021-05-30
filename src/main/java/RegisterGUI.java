@@ -236,7 +236,6 @@ public class RegisterGUI extends JFrame implements ActionListener{
 				createUserDocument(uniqueUserID, username, firstName, lastName, studentCollection);
 				break;
 		}
-		MongoQueryInterface.closeConnection();
 	}
 
 	private void createUserDocument(ObjectId uniqueUserId, String username, String firstName, String lastName, MongoCollection<Document> userCollection) {
