@@ -34,12 +34,15 @@ public class ProfController implements ActionListener, ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
         JList o = (JList) e.getSource();
-        if (o.getName().equals(ProfFrameConstants.STUDENT_LIST_NAME.toString())) {
-            profModel.showStudentInfo(o.getSelectedValue());
-        } else if (o.getName().equals(ProfFrameConstants.COURSE_LIST_NAME.toString())) {
-            profModel.enableEditButton();
-        } else if (o.getName().equals(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString())) {
-            profModel.enableRemoveCourseTaught();
+        if (e.getValueIsAdjusting()) {
+            if (o.getName().equals(ProfFrameConstants.STUDENT_LIST_NAME.toString())) {
+                profModel.showStudentInfo(o.getSelectedValue());
+            } else if (o.getName().equals(ProfFrameConstants.COURSE_LIST_NAME.toString())) {
+                profModel.enableEditButton();
+            } else if (o.getName().equals(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString())) {
+                profModel.enableRemoveCourseTaught();
+            }
         }
+
     }
 }

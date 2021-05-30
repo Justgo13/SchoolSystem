@@ -72,7 +72,7 @@ public class WelcomePage extends JFrame implements ComponentListener, ActionList
     	JButton button = (JButton) o;
     	
     	if (button.equals(loginButton)) {
-    		new Login();
+    		new LoginGUI();
     	} else if (button.equals(registerButton)){
     		new RegisterGUI();
     	}
