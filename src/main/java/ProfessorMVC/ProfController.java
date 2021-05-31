@@ -19,11 +19,11 @@ public class ProfController implements ActionListener, ListSelectionListener {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals(ProfFrameConstants.EDIT_BUTTON_COMMAND.toString())) {
+        if (e.getActionCommand().equals(ProfessorEnum.EDIT_BUTTON_COMMAND.toString())) {
             profModel.editCourseGrade();
-        } else if (e.getActionCommand().equals(ProfFrameConstants.ADD_COURSE_BUTTON_COMMAND.toString())) {
+        } else if (e.getActionCommand().equals(ProfessorEnum.ADD_COURSE_BUTTON_COMMAND.toString())) {
             profModel.addCourseTaught();
-        } else if (e.getActionCommand().equals(ProfFrameConstants.REMOVE_COURSE_BUTTON_COMMAND.toString())) {
+        } else if (e.getActionCommand().equals(ProfessorEnum.REMOVE_COURSE_BUTTON_COMMAND.toString())) {
             profModel.removeCourseTaught();
         }
     }
@@ -37,11 +37,11 @@ public class ProfController implements ActionListener, ListSelectionListener {
     public void valueChanged(ListSelectionEvent e) {
         JList o = (JList) e.getSource();
         if (e.getValueIsAdjusting()) {
-            if (o.getName().equals(ProfFrameConstants.STUDENT_LIST_NAME.toString())) {
+            if (o.getName().equals(ProfessorEnum.STUDENT_LIST_NAME.toString())) {
                 profModel.showStudentInfo(o.getSelectedValue());
-            } else if (o.getName().equals(ProfFrameConstants.COURSE_LIST_NAME.toString())) {
+            } else if (o.getName().equals(ProfessorEnum.COURSE_LIST_NAME.toString())) {
                 profModel.enableEditButton();
-            } else if (o.getName().equals(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString())) {
+            } else if (o.getName().equals(ProfessorEnum.COURSE_TAUGHT_LIST_NAME.toString())) {
                 profModel.enableRemoveCourseTaught();
             }
         }

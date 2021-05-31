@@ -50,11 +50,11 @@ public class ProfFrame extends JFrame implements ProfView {
         contentPane = getContentPane();
         contentPane.setLayout(new GridBagLayout());
         infoPanel = new JPanel(new GridBagLayout());
-        infoPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), ProfFrameConstants.STUDENT_INFORMATION_BORDER_LABEL.toString()));
+        infoPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), "Student Information"));
         studentIDPanel = new JPanel(new GridBagLayout());
-        studentIDPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), ProfFrameConstants.STUDENT_ID_BORDER_LABEL.toString()));
+        studentIDPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), "Student ID"));
         profCommandsPanel = new JPanel(new GridBagLayout());
-        profCommandsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), ProfFrameConstants.COURSE_TAUGHT_BORDER_LABEL.toString()));
+        profCommandsPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createBevelBorder(1), "Courses Taught"));
 
         populateStudentID(); // populate the student ID list from database
 
@@ -66,9 +66,9 @@ public class ProfFrame extends JFrame implements ProfView {
         firstNameField = new JTextField();
         lastNameField = new JTextField();
         tuitionFeeField = new JTextField();
-        firstNamePanel = createGenericTextFieldPanel(firstNameField, ProfFrameConstants.FIRST_NAME_FIELD_LABEL.toString(), c);
-        lastNamePanel = createGenericTextFieldPanel(lastNameField, ProfFrameConstants.LAST_NAME_FIELD_LABEL.toString(), c);
-        tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField, ProfFrameConstants.TUITION_FEE_FIELD_LABEL.toString(), c);
+        firstNamePanel = createGenericTextFieldPanel(firstNameField, "First Name", c);
+        lastNamePanel = createGenericTextFieldPanel(lastNameField, "Last Name", c);
+        tuitionFeePanel = createGenericTextFieldPanel(tuitionFeeField, "Tuition Fee", c);
 
         // professor course taught list panel setup
         courseModel = new DefaultListModel<>();
@@ -76,10 +76,10 @@ public class ProfFrame extends JFrame implements ProfView {
         courseScroll = new JScrollPane(courseList);
         courseList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         coursesPanel = new JPanel(new GridBagLayout());
-        coursesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), ProfFrameConstants.COURSES_BORDER_LABEL.toString()));
+        coursesPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEmptyBorder(), "Courses Taught"));
         coursesPanel.add(courseScroll, c);
 
-        editButton = new JButton(ProfFrameConstants.EDIT_BUTTON_LABEL.toString());
+        editButton = new JButton("Edit Student Grade");
         editButton.setEnabled(false);
 
         c.insets = new Insets(5, 5, 5, 5);
@@ -97,8 +97,8 @@ public class ProfFrame extends JFrame implements ProfView {
         contentPane.add(infoPanel, c);
 
         // prof commands panel
-        addCourseToTeach = new JButton(ProfFrameConstants.ADD_COURSE_LABEL.toString());
-        removeCourseToTeach = new JButton(ProfFrameConstants.REMOVE_COURSE_LABEL.toString());
+        addCourseToTeach = new JButton("Add course taught");
+        removeCourseToTeach = new JButton("Remove course taught");
         removeCourseToTeach.setEnabled(false);
         profCommandsPanel = createCourseTaughtPanel();
 
@@ -297,16 +297,16 @@ public class ProfFrame extends JFrame implements ProfView {
 
     private void setupActionListener(ProfController profController) {
         courseList.addListSelectionListener(profController);
-        courseList.setName(ProfFrameConstants.COURSE_LIST_NAME.toString());
+        courseList.setName(ProfessorEnum.COURSE_LIST_NAME.toString());
         studentList.addListSelectionListener(profController);
-        studentList.setName(ProfFrameConstants.STUDENT_LIST_NAME.toString());
+        studentList.setName(ProfessorEnum.STUDENT_LIST_NAME.toString());
         editButton.addActionListener(profController);
-        editButton.setActionCommand(ProfFrameConstants.EDIT_BUTTON_COMMAND.toString());
+        editButton.setActionCommand(ProfessorEnum.EDIT_BUTTON_COMMAND.toString());
         courseTaughtList.addListSelectionListener(profController);
-        courseTaughtList.setName(ProfFrameConstants.COURSE_TAUGHT_LIST_NAME.toString());
+        courseTaughtList.setName(ProfessorEnum.COURSE_TAUGHT_LIST_NAME.toString());
         addCourseToTeach.addActionListener(profController);
-        addCourseToTeach.setActionCommand(ProfFrameConstants.ADD_COURSE_BUTTON_COMMAND.toString());
+        addCourseToTeach.setActionCommand(ProfessorEnum.ADD_COURSE_BUTTON_COMMAND.toString());
         removeCourseToTeach.addActionListener(profController);
-        removeCourseToTeach.setActionCommand(ProfFrameConstants.REMOVE_COURSE_BUTTON_COMMAND.toString());
+        removeCourseToTeach.setActionCommand(ProfessorEnum.REMOVE_COURSE_BUTTON_COMMAND.toString());
     }
 }
