@@ -4,13 +4,14 @@ import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import static com.mongodb.client.model.Filters.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MongoQueryImpl implements MongoQueryInterface{
+import static com.mongodb.client.model.Filters.eq;
+
+public class MongoQueryImpl implements MongoQueryInterface {
     public static final String DATABASE_NAME = "University";
     public static final String connectionString = System.getProperty("mongodb.uri");
     public static final MongoClient mongoClient = MongoClients.create(connectionString);
@@ -19,27 +20,19 @@ public class MongoQueryImpl implements MongoQueryInterface{
     public static final MongoCollection<Document> accountCollection = getCollection("Userpass");
     public static final MongoCollection<Document> profCollection = getCollection("Professor");
 
-    public static ArrayList<Document> getUserAccountDocuments() {
-        ArrayList<Document> userAccountDocuments = new ArrayList<>();
-        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
-        for (String collectionName : collectionNames) {
-            if (collectionName.equals("Userpass")) {
-                continue;
-            }
-            MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-            collection.find().forEach((Block<Document>) document -> userAccountDocuments.add(document));
-        }
-        return userAccountDocuments;
-    }
-
-    public static String getDocumentCollectionName(Document document) {
+    public static String getDocumentCollectionName(ObjectId documentObjectID) {
+        ArrayList<Document> accountDocuments = getUserAccountDocuments();
         String collectionName = "";
-        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
-        for (String collectName : collectionNames) {
-            MongoCollection<Document> collection = mongoDatabase.getCollection(collectName);
-            FindIterable<Document> iterable = collection.find(document);
-            if (iterable.first() != null) {
-                collectionName = collectName;
+        for (Document doc : accountDocuments) {
+            if (doc.getObjectId("_id").equals(documentObjectID)) {
+                MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+                for (String collectName : collectionNames) {
+                    MongoCollection<Document> collection = mongoDatabase.getCollection(collectName);
+                    FindIterable<Document> iterable = collection.find(doc);
+                    if (iterable.first() != null) {
+                        collectionName = collectName;
+                    }
+                }
             }
         }
         return collectionName;
@@ -114,7 +107,7 @@ public class MongoQueryImpl implements MongoQueryInterface{
     public static ObjectId getAccountId(String username, String password) {
         ObjectId accountObjectId = null;
         FindIterable<Document> userPassPair = accountCollection.find();
-        for (Document doc : userPassPair){
+        for (Document doc : userPassPair) {
             String mongoUsername = doc.getString("username");
             String mongoPassword = doc.getString("password");
             if (username.equals(mongoUsername) && password.equals(mongoPassword)) { // correct user found
@@ -173,6 +166,18 @@ public class MongoQueryImpl implements MongoQueryInterface{
         userDocument.append("last name", lastName);
         userDocument.append("coursesTaught", coursesTaught);
         profCollection.insertOne(userDocument);
+    }
+
+    private static ArrayList<Document> getUserAccountDocuments() {
+        ArrayList<Document> userAccountDocuments = new ArrayList<>();
+        MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
+        for (String collectionName : collectionNames) {
+            if (!collectionName.equals("Userpass")) {
+                MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
+                collection.find().forEach((Block<Document>) document -> userAccountDocuments.add(document));
+            }
+        }
+        return userAccountDocuments;
     }
 
     private static Document getStudentInformation(ObjectId studentID) {

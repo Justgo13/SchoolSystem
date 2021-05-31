@@ -2,10 +2,12 @@ import org.bson.types.ObjectId;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 public class ProfFrame extends JFrame implements ProfView {
+    private final ObjectId profID;
+    private final ProfModel profModel;
     private Container contentPane;
     private JPanel infoPanel;
     private JPanel firstNamePanel;
@@ -26,8 +28,6 @@ public class ProfFrame extends JFrame implements ProfView {
     private JButton addCourseToTeach;
     private JButton removeCourseToTeach;
     private DefaultListModel<String> courseModel;
-    private final ObjectId profID;
-    private final ProfModel profModel;
     private DefaultListModel<String> courseTaughtListModel;
 
     public ProfFrame(ObjectId profID) {
