@@ -1,3 +1,5 @@
+package MongoQuery;
+
 import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
 import com.mongodb.client.*;

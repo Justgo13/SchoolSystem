@@ -1,9 +1,12 @@
+package ProfessorMVC;
+
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.*;
+import MongoQuery.MongoQueryInterface;
 
 public class ProfFrame extends JFrame implements ProfView {
     private final ObjectId profID;

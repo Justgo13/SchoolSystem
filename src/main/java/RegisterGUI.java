@@ -1,3 +1,4 @@
+import MongoQuery.MongoQueryInterface;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;

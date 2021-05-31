@@ -1,3 +1,5 @@
+package ProfessorMVC;
+
 public interface ProfView {
     void handleShowStudentInfo(Object selectedValue);
     void handleUpdateCourseGrade();

@@ -1,3 +1,5 @@
+import MongoQuery.MongoQueryInterface;
+import ProfessorMVC.ProfFrame;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;

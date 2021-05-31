@@ -1,3 +1,5 @@
+package ProfessorMVC;
+
 public enum ProfFrameConstants {
     STUDENT_INFORMATION_BORDER_LABEL("Student Information"), STUDENT_ID_BORDER_LABEL("Student ID"),
     COURSE_TAUGHT_BORDER_LABEL("Courses Taught"), FIRST_NAME_FIELD_LABEL("First Name"),
