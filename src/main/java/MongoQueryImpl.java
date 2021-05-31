@@ -175,10 +175,6 @@ public class MongoQueryImpl implements MongoQueryInterface{
         profCollection.insertOne(userDocument);
     }
 
-    public static void closeConnection() {
-        mongoClient.close();
-    }
-
     private static Document getStudentInformation(ObjectId studentID) {
         return studentCollection.find(eq("_id", studentID)).first();
     }

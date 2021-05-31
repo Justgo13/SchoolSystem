@@ -1,6 +1,3 @@
-import com.mongodb.BasicDBObject;
-import com.mongodb.client.MongoCollection;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
