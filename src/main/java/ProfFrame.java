@@ -233,19 +233,25 @@ public class ProfFrame extends JFrame implements ProfView {
         ObjectId studentID = (ObjectId) studentList.getSelectedValue();
         String[] coursesBreakdown = course.split(" ");
         String courseName = coursesBreakdown[0];
-        Long grade = Long.parseLong((String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
-                JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]));
-        MongoQueryInterface.updateStudentGrade(studentID, courseName, grade);
-        updateStudentInformationFields(studentID);
-        courseList.setSelectedValue(null, false);
-        disableEditButtons();
+        try {
+            Long grade = Long.parseLong((String) JOptionPane.showInputDialog(contentPane, "Set student grade", "Update grade",
+                    JOptionPane.PLAIN_MESSAGE, null, null, coursesBreakdown[2]));
+            MongoQueryInterface.updateStudentGrade(studentID, courseName, grade);
+            updateStudentInformationFields(studentID);
+            courseList.setSelectedValue(null, false);
+            disableEditButtons();
+        } catch (NumberFormatException e) {
+            System.out.println("error " + e + "while updating student course grade");
+        }
     }
 
     @Override
     public void handleAddCourseTaught() {
-        String courseToAdd = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", JOptionPane.OK_OPTION);
-        MongoQueryInterface.addProfessorCourse(profID, courseToAdd);
-        updateProfessorCourseTaught();
+        String courseToAdd = JOptionPane.showInputDialog(this, "Enter course code", "Add course taught", JOptionPane.PLAIN_MESSAGE);
+        if (courseToAdd != null) {
+            MongoQueryInterface.addProfessorCourse(profID, courseToAdd);
+            updateProfessorCourseTaught();
+        }
     }
 
     @Override
