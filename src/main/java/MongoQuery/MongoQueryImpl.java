@@ -26,7 +26,7 @@ public class MongoQueryImpl implements MongoQueryInterface {
         ArrayList<Document> accountDocuments = getUserAccountDocuments();
         String collectionName = "";
         for (Document doc : accountDocuments) {
-            if (doc.getObjectId("_id").equals(documentObjectID)) {
+            if (doc.getObjectId(MongoQueryEnum.ID.toString()).equals(documentObjectID)) {
                 MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
                 for (String collectName : collectionNames) {
                     MongoCollection<Document> collection = mongoDatabase.getCollection(collectName);
@@ -42,8 +42,8 @@ public class MongoQueryImpl implements MongoQueryInterface {
 
     public static List<String> getProfessorCourses(ObjectId profID) {
         MongoCollection<Document> profCollection = getCollection("Professor");
-        Document profDocument = profCollection.find(eq("_id", profID)).first();
-        return profDocument.getList("coursesTaught", String.class);
+        Document profDocument = profCollection.find(eq(MongoQueryEnum.ID.toString(), profID)).first();
+        return profDocument.getList(MongoQueryEnum.profCourses.toString(), String.class);
     }
 
     public static Map<ObjectId, List<String>> getAllStudentCourses() {
@@ -51,11 +51,11 @@ public class MongoQueryImpl implements MongoQueryInterface {
         FindIterable<Document> studentDocuments = studentCollection.find();
         Map<ObjectId, List<String>> allStudentCourses = new HashMap<>();
         for (Document studentInformation : studentDocuments) {
-            ObjectId studentID = studentInformation.getObjectId("_id");
-            List<Document> studentCourseTaken = studentInformation.getList("courseGrades", Document.class);
+            ObjectId studentID = studentInformation.getObjectId(MongoQueryEnum.ID.toString());
+            List<Document> studentCourseTaken = studentInformation.getList(MongoQueryEnum.studentCourses.toString(), Document.class);
             List<String> studentCourses = new ArrayList<>();
             for (Document course : studentCourseTaken) {
-                studentCourses.add(course.getString("courseName"));
+                studentCourses.add(course.getString(MongoQueryEnum.studentCourseName.toString()));
             }
             allStudentCourses.put(studentID, studentCourses);
         }
@@ -64,11 +64,11 @@ public class MongoQueryImpl implements MongoQueryInterface {
 
     public static Long getStudentCourseGrade(ObjectId studentID, String studentCourseName) {
         Document studentInformation = getStudentInformation(studentID);
-        List<Document> studentCourses = studentInformation.getList("courseGrades", Document.class);
+        List<Document> studentCourses = studentInformation.getList(MongoQueryEnum.studentCourses.toString(), Document.class);
         Long studentCourseGrade = 0L;
         for (Document studentCourse : studentCourses) {
-            String currCourseName = studentCourse.getString("courseName");
-            Long currCourseGrade = studentCourse.getLong("grade");
+            String currCourseName = studentCourse.getString(MongoQueryEnum.studentCourseName.toString());
+            Long currCourseGrade = studentCourse.getLong(MongoQueryEnum.studentCourseGrade.toString());
             if (currCourseName.equals(studentCourseName)) {
                 studentCourseGrade = currCourseGrade;
                 break;
@@ -79,27 +79,27 @@ public class MongoQueryImpl implements MongoQueryInterface {
 
     public static String getStudentFirstName(ObjectId studentID) {
         Document studentInformation = getStudentInformation(studentID);
-        return studentInformation.getString("first name");
+        return studentInformation.getString(MongoQueryEnum.userFirstName.toString());
     }
 
     public static String getStudentLastName(ObjectId studentID) {
         Document studentInformation = getStudentInformation(studentID);
-        return studentInformation.getString("last name");
+        return studentInformation.getString(MongoQueryEnum.userLastName.toString());
     }
 
     public static Long getStudentTuitionFee(ObjectId studentID) {
         Document studentInformation = getStudentInformation(studentID);
-        return studentInformation.getLong("tuition fee");
+        return studentInformation.getLong(MongoQueryEnum.studentTuitionFee.toString());
     }
 
     public static void updateStudentGrade(ObjectId studentID, String courseName, Long grade) {
         Document studentInformation = getStudentInformation(studentID);
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", studentInformation.getObjectId("_id"));
-        query.put("courseGrades.courseName", courseName);
+        query.put(MongoQueryEnum.ID.toString(), studentInformation.getObjectId(MongoQueryEnum.ID.toString()));
+        query.put(MongoQueryEnum.studentCourses.toString() + "." + MongoQueryEnum.studentCourseName.toString(), courseName);
 
         BasicDBObject data = new BasicDBObject();
-        data.put("courseGrades.$.grade", Long.valueOf(grade));
+        data.put(MongoQueryEnum.studentCourses.toString() + ".$." + MongoQueryEnum.studentCourseGrade.toString(), Long.valueOf(grade));
 
         BasicDBObject command = new BasicDBObject();
         command.put("$set", data);
@@ -110,10 +110,10 @@ public class MongoQueryImpl implements MongoQueryInterface {
         ObjectId accountObjectId = null;
         FindIterable<Document> userPassPair = accountCollection.find();
         for (Document doc : userPassPair) {
-            String mongoUsername = doc.getString("username");
-            String mongoPassword = doc.getString("password");
+            String mongoUsername = doc.getString(MongoQueryEnum.userUsername.toString());
+            String mongoPassword = doc.getString(MongoQueryEnum.userPassword.toString());
             if (username.equals(mongoUsername) && password.equals(mongoPassword)) { // correct user found
-                accountObjectId = doc.getObjectId("_id");
+                accountObjectId = doc.getObjectId(MongoQueryEnum.ID.toString());
             }
         }
         return accountObjectId;
@@ -123,10 +123,10 @@ public class MongoQueryImpl implements MongoQueryInterface {
         Document profDocument = getProfessorInformation(profID);
 
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", profDocument.getObjectId("_id"));
+        query.put(MongoQueryEnum.ID.toString(), profDocument.getObjectId(MongoQueryEnum.ID.toString()));
 
         BasicDBObject fields = new BasicDBObject();
-        fields.put("coursesTaught", courseName);
+        fields.put(MongoQueryEnum.profCourses.toString(), courseName);
 
         BasicDBObject command = new BasicDBObject();
         command.put("$push", fields);
@@ -137,10 +137,10 @@ public class MongoQueryImpl implements MongoQueryInterface {
         Document profDocument = getProfessorInformation(profID);
 
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", profDocument.getObjectId("_id"));
+        query.put(MongoQueryEnum.ID.toString(), profDocument.getObjectId(MongoQueryEnum.ID.toString()));
 
         BasicDBObject fields = new BasicDBObject();
-        fields.put("coursesTaught", courseName);
+        fields.put(MongoQueryEnum.profCourses.toString(), courseName);
 
         BasicDBObject command = new BasicDBObject();
         command.put("$pull", fields);
@@ -153,20 +153,20 @@ public class MongoQueryImpl implements MongoQueryInterface {
 
     public static ObjectId createAccountDocument(String username, String password) {
         ObjectId accountObjectID = new ObjectId();
-        Document userPassPair = new Document("_id", accountObjectID);
-        userPassPair.append("username", username);
-        userPassPair.append("password", password);
+        Document userPassPair = new Document(MongoQueryEnum.ID.toString(), accountObjectID);
+        userPassPair.append(MongoQueryEnum.userUsername.toString(), username);
+        userPassPair.append(MongoQueryEnum.userPassword.toString(), password);
         accountCollection.insertOne(userPassPair);
         return accountObjectID;
     }
 
     public static void createProfessorDocument(ObjectId accountObjectID, String username, String firstName, String lastName) {
-        Document userDocument = new Document("_id", accountObjectID);
+        Document userDocument = new Document(MongoQueryEnum.ID.toString(), accountObjectID);
         List<String> coursesTaught = new ArrayList<>();
-        userDocument.append("username", username);
-        userDocument.append("first name", firstName);
-        userDocument.append("last name", lastName);
-        userDocument.append("coursesTaught", coursesTaught);
+        userDocument.append(MongoQueryEnum.userUsername.toString(), username);
+        userDocument.append(MongoQueryEnum.userFirstName.toString(), firstName);
+        userDocument.append(MongoQueryEnum.userLastName.toString(), lastName);
+        userDocument.append(MongoQueryEnum.profCourses.toString(), coursesTaught);
         profCollection.insertOne(userDocument);
     }
 
@@ -183,11 +183,11 @@ public class MongoQueryImpl implements MongoQueryInterface {
     }
 
     private static Document getStudentInformation(ObjectId studentID) {
-        return studentCollection.find(eq("_id", studentID)).first();
+        return studentCollection.find(eq(MongoQueryEnum.ID.toString(), studentID)).first();
     }
 
     private static Document getProfessorInformation(ObjectId profID) {
-        return profCollection.find(eq("_id", profID)).first();
+        return profCollection.find(eq(MongoQueryEnum.ID.toString(), profID)).first();
     }
 
     private static MongoCollection<Document> getCollection(String collectionName) {
