@@ -1,5 +1,6 @@
 import MongoQuery.MongoQueryInterface;
 import ProfessorMVC.ProfFrame;
+import StudentMVC.StudentFrame;
 import org.bson.types.ObjectId;
 
 import javax.swing.*;
@@ -141,7 +142,8 @@ public class LoginGUI extends JFrame implements ActionListener {
                 new ProfFrame(accountObjectID);
                 break;
             case "Student":
-                new StudentGUI(usernameField.getText());
+                System.out.println("Logged in as student");
+                new StudentFrame(accountObjectID);
                 break;
         }
     }

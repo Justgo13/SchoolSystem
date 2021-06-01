@@ -6,6 +6,7 @@ import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +64,7 @@ public class MongoQueryImpl implements MongoQueryInterface {
     }
 
     public static Long getStudentCourseGrade(ObjectId studentID, String studentCourseName) {
-        Document studentInformation = getStudentInformation(studentID);
+        Document studentInformation = getStudentDocument(studentID);
         List<Document> studentCourses = studentInformation.getList(MongoQueryEnum.studentCourses.toString(), Document.class);
         Long studentCourseGrade = 0L;
         for (Document studentCourse : studentCourses) {
@@ -78,22 +79,22 @@ public class MongoQueryImpl implements MongoQueryInterface {
     }
 
     public static String getStudentFirstName(ObjectId studentID) {
-        Document studentInformation = getStudentInformation(studentID);
+        Document studentInformation = getStudentDocument(studentID);
         return studentInformation.getString(MongoQueryEnum.userFirstName.toString());
     }
 
     public static String getStudentLastName(ObjectId studentID) {
-        Document studentInformation = getStudentInformation(studentID);
+        Document studentInformation = getStudentDocument(studentID);
         return studentInformation.getString(MongoQueryEnum.userLastName.toString());
     }
 
     public static Long getStudentTuitionFee(ObjectId studentID) {
-        Document studentInformation = getStudentInformation(studentID);
+        Document studentInformation = getStudentDocument(studentID);
         return studentInformation.getLong(MongoQueryEnum.studentTuitionFee.toString());
     }
 
     public static void updateStudentGrade(ObjectId studentID, String courseName, Long grade) {
-        Document studentInformation = getStudentInformation(studentID);
+        Document studentInformation = getStudentDocument(studentID);
         BasicDBObject query = new BasicDBObject();
         query.put(MongoQueryEnum.ID.toString(), studentInformation.getObjectId(MongoQueryEnum.ID.toString()));
         query.put(MongoQueryEnum.studentCourses.toString() + "." + MongoQueryEnum.studentCourseName.toString(), courseName);
@@ -170,6 +171,20 @@ public class MongoQueryImpl implements MongoQueryInterface {
         profCollection.insertOne(userDocument);
     }
 
+    public static Map<String, Long> getStudentCourses(ObjectId studentID) {
+        Document studentDocument = getStudentDocument(studentID);
+        Map<String, Long> studentCourses = new HashMap<>();
+        List<Document> studentCourseList = studentDocument.getList(MongoQueryEnum.studentCourses.toString(), Document.class);
+
+        for (Document course : studentCourseList) {
+            String courseName = course.getString(MongoQueryEnum.studentCourseName.toString());
+            Long grade = course.getLong(MongoQueryEnum.studentCourseGrade.toString());
+            studentCourses.put(courseName, grade);
+        }
+
+        return studentCourses;
+    }
+
     private static ArrayList<Document> getUserAccountDocuments() {
         ArrayList<Document> userAccountDocuments = new ArrayList<>();
         MongoIterable<String> collectionNames = mongoDatabase.listCollectionNames();
@@ -182,7 +197,7 @@ public class MongoQueryImpl implements MongoQueryInterface {
         return userAccountDocuments;
     }
 
-    private static Document getStudentInformation(ObjectId studentID) {
+    private static Document getStudentDocument(ObjectId studentID) {
         return studentCollection.find(eq(MongoQueryEnum.ID.toString(), studentID)).first();
     }
 

@@ -61,4 +61,7 @@ public interface MongoQueryInterface {
     static void createProfessorDocument(ObjectId accountObjectID, String username, String firstName, String lastName) {
         MongoQueryImpl.createProfessorDocument(accountObjectID, username, firstName, lastName);
     }
+    static Map<String, Long> getStudentCourses(ObjectId studentID) {
+        return MongoQueryImpl.getStudentCourses(studentID);
+    }
 }
