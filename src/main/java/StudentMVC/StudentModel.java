@@ -14,4 +14,16 @@ public class StudentModel {
     public void addStudentView(StudentView studentView) {
         studentViews.add(studentView);
     }
+
+    public void addCourseTaken() {
+        for (StudentView sv : studentViews) {
+            sv.handleAddCourseTaken();
+        }
+    }
+
+    public void removeCourseTaken() {
+        for (StudentView sv : studentViews) {
+            sv.handleRemoveCourseTaken();
+        }
+    }
 }

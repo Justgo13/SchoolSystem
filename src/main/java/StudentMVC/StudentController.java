@@ -1,7 +1,5 @@
 package StudentMVC;
 
-import StudentMVC.StudentModel;
-
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.event.ActionEvent;
@@ -20,7 +18,12 @@ public class StudentController implements ActionListener, ListSelectionListener 
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        
+        if (e.getActionCommand().equals(StudentEnum.ADD_COURSE.toString())) {
+            studentModel.addCourseTaken();
+        }
+        else if (e.getActionCommand().equals(StudentEnum.REMOVE_COURSE.toString())) {
+            studentModel.removeCourseTaken();
+        }
     }
 
     /**

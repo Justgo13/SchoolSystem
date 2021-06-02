@@ -3,6 +3,7 @@ package MongoQuery;
 import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -121,31 +122,11 @@ public class MongoQueryImpl implements MongoQueryInterface {
     }
 
     public static void addProfessorCourse(ObjectId profID, String courseName) {
-        Document profDocument = getProfessorInformation(profID);
-
-        BasicDBObject query = new BasicDBObject();
-        query.put(MongoQueryEnum.ID.toString(), profDocument.getObjectId(MongoQueryEnum.ID.toString()));
-
-        BasicDBObject fields = new BasicDBObject();
-        fields.put(MongoQueryEnum.profCourses.toString(), courseName);
-
-        BasicDBObject command = new BasicDBObject();
-        command.put("$push", fields);
-        profCollection.updateOne(query, command);
+        profCollection.updateOne(eq(MongoQueryEnum.ID.toString(), profID), Updates.addToSet(MongoQueryEnum.profCourses.toString(), courseName));
     }
 
     public static void removeProfessorCourse(ObjectId profID, String courseName) {
-        Document profDocument = getProfessorInformation(profID);
-
-        BasicDBObject query = new BasicDBObject();
-        query.put(MongoQueryEnum.ID.toString(), profDocument.getObjectId(MongoQueryEnum.ID.toString()));
-
-        BasicDBObject fields = new BasicDBObject();
-        fields.put(MongoQueryEnum.profCourses.toString(), courseName);
-
-        BasicDBObject command = new BasicDBObject();
-        command.put("$pull", fields);
-        profCollection.updateOne(query, command);
+        profCollection.updateOne(eq(MongoQueryEnum.ID.toString(), profID), Updates.pull(MongoQueryEnum.profCourses.toString(), courseName));
     }
 
     public static boolean usernameExists() {
@@ -183,6 +164,21 @@ public class MongoQueryImpl implements MongoQueryInterface {
         }
 
         return studentCourses;
+    }
+
+    public static void addStudentCourse(ObjectId studentID, String courseToAdd) {
+        Document courseDocument = new Document();
+        courseDocument.append(MongoQueryEnum.studentCourseName.toString(), courseToAdd);
+        courseDocument.append(MongoQueryEnum.studentCourseGrade.toString(), 0L);
+        studentCollection.updateOne(eq(MongoQueryEnum.ID.toString(), studentID), Updates.addToSet(MongoQueryEnum.studentCourses.toString(), courseDocument));
+    }
+
+    public static void removeStudentCourse(ObjectId studentID, String courseToRemove, Long grade) {
+        Document courseToRemoveDocument = new Document();
+        courseToRemoveDocument.append(MongoQueryEnum.studentCourseName.toString(), courseToRemove);
+        courseToRemoveDocument.append(MongoQueryEnum.studentCourseGrade.toString(), grade);
+        // findCourseDocument(studentID, courseToRemove);
+        studentCollection.updateOne(eq(MongoQueryEnum.ID.toString(), studentID), Updates.pull(MongoQueryEnum.studentCourses.toString(), courseToRemoveDocument));
     }
 
     private static ArrayList<Document> getUserAccountDocuments() {

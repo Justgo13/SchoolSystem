@@ -6,7 +6,6 @@ import org.bson.types.ObjectId;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -119,9 +118,9 @@ public class StudentFrame extends JFrame implements StudentView {
         coursesTaken.addListSelectionListener(studentController);
         coursesTaken.setName(StudentEnum.COURSE_LIST_NAME.toString());
         addCourse.addActionListener(studentController);
-        addCourse.setName(StudentEnum.ADD_COURSE.toString());
+        addCourse.setActionCommand(StudentEnum.ADD_COURSE.toString());
         removeCourse.addActionListener(studentController);
-        removeCourse.setName(StudentEnum.REMOVE_COURSE.toString());
+        removeCourse.setActionCommand(StudentEnum.REMOVE_COURSE.toString());
     }
 
     private void updateStudentInformation() {
@@ -146,4 +145,24 @@ public class StudentFrame extends JFrame implements StudentView {
 
     }
 
+    @Override
+    public void handleAddCourseTaken() {
+        String courseToAdd = JOptionPane.showInputDialog(this, "Enter course code", "Add course taken", JOptionPane.PLAIN_MESSAGE);
+        if (courseToAdd != null) {
+            MongoQueryInterface.addStudentCourse(studentID, courseToAdd);
+            updateStudentInformation();
+        }
+    }
+
+    @Override
+    public void handleRemoveCourseTaken() {
+        String courseGradeString = coursesTaken.getSelectedValue();
+        String[] courseGradeBreakdown = courseGradeString.split(" - ");
+        String courseName = courseGradeBreakdown[0];
+        Long grade = Long.parseLong(courseGradeBreakdown[1]);
+        MongoQueryInterface.removeStudentCourse(studentID, courseName, grade);
+        updateStudentInformation();
+        coursesTaken.setSelectedValue(null, false);
+        removeCourse.setEnabled(false);
+    }
 }

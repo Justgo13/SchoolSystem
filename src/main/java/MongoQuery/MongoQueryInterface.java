@@ -64,4 +64,12 @@ public interface MongoQueryInterface {
     static Map<String, Long> getStudentCourses(ObjectId studentID) {
         return MongoQueryImpl.getStudentCourses(studentID);
     }
+
+    static void addStudentCourse(ObjectId studentID, String courseToAdd) {
+        MongoQueryImpl.addStudentCourse(studentID, courseToAdd);
+    }
+
+    static void removeStudentCourse(ObjectId studentID, String courseToRemove, Long grade) {
+        MongoQueryImpl.removeStudentCourse(studentID, courseToRemove, grade);
+    }
 }
